@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/seed-fixtures",
+      "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/cron/live-poll",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/cron/settle-results",
+      "schedule": "*/5 * * * *"
+    }
+  ]
+}
