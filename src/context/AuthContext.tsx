@@ -47,14 +47,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       correct_predictions: 0,
       registered_at: serverTimestamp(),
     });
+
+    // Set session cookie for middleware
+    const idToken = await credential.user.getIdToken();
+    await fetch('/api/auth/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    });
   };
 
   const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    const credential = await signInWithEmailAndPassword(auth, email, password);
+    // Set session cookie for middleware
+    const idToken = await credential.user.getIdToken();
+    await fetch('/api/auth/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    });
   };
 
   const signOut = async () => {
     await firebaseSignOut(auth);
+    // Clear session cookie
+    await fetch('/api/auth/session', { method: 'DELETE' });
   };
 
   return (
