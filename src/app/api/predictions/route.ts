@@ -1,30 +1,21 @@
 // POST /api/predictions
 // Submit or update a prediction for a fixture.
 // Server-side kickoff lock: rejected if current time >= fixture.kickoff_utc.
-// Requires Firebase ID token in Authorization header.
+// Uses Supabase SSR session cookie for authentication.
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminAuth, getAdminFirestore } from '@/lib/firebase/admin';
+import { createClient } from '@/lib/supabase/server';
 import { PredictionResult } from '@/lib/types';
-import { FieldValue } from 'firebase-admin/firestore';
 
 const VALID_RESULTS: PredictionResult[] = ['H', 'D', 'A'];
 
 export async function POST(request: NextRequest) {
-  // 1. Verify Firebase ID token
-  const authHeader = request.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
+  const supabase = createClient();
+
+  // 1. Verify user is logged in
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const idToken = authHeader.split('Bearer ')[1];
-  let uid: string;
-
-  try {
-    const decoded = await getAdminAuth().verifyIdToken(idToken);
-    uid = decoded.uid;
-  } catch {
-    return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
   }
 
   // 2. Parse and validate request body
@@ -48,57 +39,57 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const db = getAdminFirestore();
-
-  // 3. Fetch fixture — check it exists and kickoff hasn't passed
-  const fixtureRef = db.doc(`fixtures/${fixture_id}`);
-  const fixtureSnap = await fixtureRef.get();
-
-  if (!fixtureSnap.exists) {
-    return NextResponse.json({ error: 'Fixture not found' }, { status: 404 });
-  }
-
-  const fixture = fixtureSnap.data()!;
-  const kickoffUtc = new Date(fixture.kickoff_utc);
-  const now = new Date();
-
-  // SERVER-SIDE LOCK: never trust the client
-  if (now >= kickoffUtc) {
-    return NextResponse.json(
-      {
-        error: 'Prediction locked — match has already kicked off',
-        locked_at: kickoffUtc.toISOString(),
-      },
-      { status: 403 }
-    );
-  }
-
-  // Also reject if fixture is already live or finished
-  const blockedStatuses = ['1H', '2H', 'HT', 'ET', 'P', 'LIVE', 'FT', 'AET', 'PEN', 'VOID'];
-  if (blockedStatuses.includes(fixture.status)) {
-    return NextResponse.json(
-      { error: `Cannot predict — fixture status is ${fixture.status}` },
-      { status: 403 }
-    );
-  }
-
-  // 4. Write prediction to Firestore
-  // Document ID: {uid}_{fixtureId} — enables direct get() lookup, no query needed
-  const predictionRef = db.doc(`predictions/${uid}_${fixture_id}`);
-
   try {
-    await predictionRef.set(
-      {
-        user_id: uid,
+    // 3. Fetch fixture to check kickoff lock
+    const { data: fixture, error: fixtureError } = await supabase
+      .from('fixtures')
+      .select('*')
+      .eq('fixture_id', fixture_id)
+      .single();
+
+    if (fixtureError || !fixture) {
+      return NextResponse.json({ error: 'Fixture not found' }, { status: 404 });
+    }
+
+    const kickoffUtc = new Date(fixture.kickoff_utc);
+    const now = new Date();
+
+    // SERVER-SIDE LOCK: reject if kickoff has passed
+    if (now >= kickoffUtc) {
+      return NextResponse.json(
+        {
+          error: 'Prediction locked — match has already kicked off',
+          locked_at: kickoffUtc.toISOString(),
+        },
+        { status: 403 }
+      );
+    }
+
+    // Also reject if fixture is already live or finished
+    const blockedStatuses = ['1H', '2H', 'HT', 'ET', 'P', 'LIVE', 'FT', 'AET', 'PEN', 'VOID'];
+    if (blockedStatuses.includes(fixture.status)) {
+      return NextResponse.json(
+        { error: `Cannot predict — fixture status is ${fixture.status}` },
+        { status: 403 }
+      );
+    }
+
+    // 4. Write prediction to Supabase predictions table (upsert on composite key user_id + fixture_id)
+    const { error: predictionError } = await supabase
+      .from('predictions')
+      .upsert({
+        user_id: user.id,
         fixture_id,
         predicted_result,
         editable: true,
         points_earned: 0,
         is_correct: null,
-        submitted_at: FieldValue.serverTimestamp(),
-      },
-      { merge: true } // Overwrite prediction if exists (user changed their pick)
-    );
+        submitted_at: new Date().toISOString(),
+      });
+
+    if (predictionError) {
+      throw predictionError;
+    }
 
     return NextResponse.json({
       success: true,
@@ -109,7 +100,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (err) {
-    console.error('[/api/predictions] Firestore write error:', err);
+    console.error('[/api/predictions] Supabase write error:', err);
     return NextResponse.json({ error: 'Failed to save prediction' }, { status: 500 });
   }
 }

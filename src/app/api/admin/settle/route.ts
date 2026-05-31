@@ -1,58 +1,58 @@
 // POST /api/admin/settle
 // Admin-only: manually trigger result settlement for a specific fixture_id.
-// Protected by ADMIN_UID env var check (Firebase UID).
+// Protected by is_admin flag in the public.users database table.
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminAuth, getAdminFirestore } from '@/lib/firebase/admin';
+import { createClient } from '@/lib/supabase/server';
 import { getFixtureResult } from '@/lib/api-football';
-import { settleFixture } from '@/lib/scoring';
-import { Fixture, Prediction } from '@/lib/types';
-import { FieldValue } from 'firebase-admin/firestore';
+import { Fixture } from '@/lib/types';
 
 export async function POST(request: NextRequest) {
-  // 1. Verify Firebase token
-  const authHeader = request.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
+  const supabase = createClient();
+
+  // 1. Verify user is logged in
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  let uid: string;
   try {
-    const decoded = await getAdminAuth().verifyIdToken(authHeader.split('Bearer ')[1]);
-    uid = decoded.uid;
-  } catch {
-    return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-  }
+    // 2. Fetch user profile to verify is_admin flag
+    const { data: profile, error: profileError } = await supabase
+      .from('users')
+      .select('is_admin')
+      .eq('uid', user.id)
+      .single();
 
-  // 2. Check admin access
-  const adminUid = process.env.ADMIN_UID;
-  if (!adminUid || uid !== adminUid) {
-    return NextResponse.json({ error: 'Forbidden — admin only' }, { status: 403 });
-  }
-
-  // 3. Parse body
-  let body: { fixture_id: number };
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
-
-  const { fixture_id } = body;
-  if (!fixture_id) {
-    return NextResponse.json({ error: 'fixture_id required' }, { status: 400 });
-  }
-
-  const db = getAdminFirestore();
-
-  try {
-    // 4. Fetch fixture from Firestore
-    const fixtureSnap = await db.doc(`fixtures/${fixture_id}`).get();
-    if (!fixtureSnap.exists) {
-      return NextResponse.json({ error: 'Fixture not found in Firestore' }, { status: 404 });
+    if (profileError || !profile?.is_admin) {
+      return NextResponse.json({ error: 'Forbidden — admin only' }, { status: 403 });
     }
 
-    let fixture = fixtureSnap.data() as Fixture;
+    // 3. Parse body
+    let body: { fixture_id: number };
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
+
+    const { fixture_id } = body;
+    if (!fixture_id) {
+      return NextResponse.json({ error: 'fixture_id required' }, { status: 400 });
+    }
+
+    // 4. Fetch fixture from database
+    const { data: fixture, error: fixtureError } = await supabase
+      .from('fixtures')
+      .select('*')
+      .eq('fixture_id', fixture_id)
+      .single();
+
+    if (fixtureError || !fixture) {
+      return NextResponse.json({ error: 'Fixture not found in database' }, { status: 404 });
+    }
+
+    let verifiedFixture: Fixture = fixture;
 
     // 5. If result is null, fetch from API
     if (!fixture.result) {
@@ -62,58 +62,37 @@ export async function POST(request: NextRequest) {
           error: 'Match has not finished yet — no result available from API-Football',
         }, { status: 422 });
       }
-      fixture = freshFixture;
-      await fixtureSnap.ref.set({ result: fixture.result, status: fixture.status }, { merge: true });
+      verifiedFixture = freshFixture;
+
+      // Update fixture with result in DB
+      await supabase
+        .from('fixtures')
+        .update({ result: freshFixture.result, status: freshFixture.status })
+        .eq('fixture_id', fixture_id);
     }
 
-    // 6. Fetch all predictions for this fixture
-    const predsSnap = await db
-      .collection('predictions')
-      .where('fixture_id', '==', fixture_id)
-      .get();
-
-    if (predsSnap.empty) {
-      return NextResponse.json({
-        success: true,
-        message: 'No predictions to settle for this fixture',
-        fixture_id,
+    // 6. Trigger atomic settlement using our high-performance RPC function
+    const { error: rpcError } = await supabase
+      .rpc('settle_fixture_predictions', {
+        target_fixture_id: fixture_id,
+        actual_result: verifiedFixture.result,
       });
+
+    if (rpcError) {
+      throw rpcError;
     }
 
-    const predictions = predsSnap.docs.map((doc) => ({
-      _id: doc.id,
-      ...(doc.data() as Prediction),
-    }));
-
-    // 7. Score and batch-write
-    const scored = settleFixture(fixture, predictions);
-    const batch = db.batch();
-
-    for (const result of scored) {
-      const predRef = db.doc(`predictions/${result.prediction_id}`);
-      batch.update(predRef, {
-        is_correct: result.is_correct,
-        points_earned: result.points_earned,
-        editable: false,
-      });
-
-      const userRef = db.doc(`users/${result.user_id}`);
-      batch.update(userRef, {
-        total_points: FieldValue.increment(result.points_earned),
-        correct_predictions: result.is_correct ? FieldValue.increment(1) : FieldValue.increment(0),
-      });
-    }
-
-    batch.update(fixtureSnap.ref, { _manually_settled_at: new Date().toISOString() });
-    await batch.commit();
+    // Update manually settled flag
+    await supabase
+      .from('fixtures')
+      .update({ _manually_settled_at: new Date().toISOString() } as Record<string, string>)
+      .eq('fixture_id', fixture_id);
 
     return NextResponse.json({
       success: true,
       fixture_id,
-      result: fixture.result,
-      predictions_settled: scored.length,
-      correct: scored.filter((s) => s.is_correct).length,
-      wrong: scored.filter((s) => !s.is_correct).length,
+      result: verifiedFixture.result,
+      message: 'Fixture predictions settled successfully.',
     });
   } catch (err) {
     console.error('[/api/admin/settle] Error:', err);

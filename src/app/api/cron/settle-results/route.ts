@@ -1,14 +1,12 @@
 // GET /api/cron/settle-results
 // Scheduled: */5 * * * * (every 5 minutes)
-// Detects FT fixtures → runs scoring engine → updates user.total_points atomically.
+// Detects finished fixtures → runs scoring engine → updates user points atomically using Supabase RPC.
 // Protected by CRON_SECRET header.
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminFirestore } from '@/lib/firebase/admin';
+import { createAdminClient } from '@/lib/supabase/server';
 import { getFixtureResult } from '@/lib/api-football';
-import { settleFixture } from '@/lib/scoring';
-import { Fixture, Prediction } from '@/lib/types';
-import { FieldValue } from 'firebase-admin/firestore';
+import { Fixture } from '@/lib/types';
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
@@ -16,19 +14,23 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const db = getAdminFirestore();
+  const supabase = createAdminClient();
   const settledFixtures: number[] = [];
   const errors: string[] = [];
 
   try {
-    // 1. Find all LIVE or recently-ended fixtures that haven't been settled yet
-    const fixturesSnap = await db
-      .collection('fixtures')
-      .where('status', 'in', ['FT', 'AET', 'PEN'])
-      .where('result', '!=', null)
-      .get();
+    // 1. Find all finished fixtures that haven't been settled yet
+    const { data: fixtures, error: fetchError } = await supabase
+      .from('fixtures')
+      .select('*')
+      .in('status', ['FT', 'AET', 'PEN'])
+      .is('_settled_at', null);
 
-    if (fixturesSnap.empty) {
+    if (fetchError) {
+      throw fetchError;
+    }
+
+    if (!fixtures || fixtures.length === 0) {
       return NextResponse.json({
         success: true,
         message: 'No FT fixtures to settle',
@@ -36,72 +38,54 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    for (const fixtureDoc of fixturesSnap.docs) {
-      const fixture = fixtureDoc.data() as Fixture;
+    for (const fixture of fixtures) {
+      try {
+        // 2. Get verified result from API (or use existing database value if already has result)
+        let verifiedFixture: Fixture = fixture;
 
-      // Skip if already settled (all predictions have is_correct set)
-      // We check by looking for any unsettled prediction for this fixture
-      const unsettledPreds = await db
-        .collection('predictions')
-        .where('fixture_id', '==', fixture.fixture_id)
-        .where('is_correct', '==', null)
-        .get();
+        if (!fixture.result) {
+          const freshFixture = await getFixtureResult(fixture.fixture_id);
+          if (!freshFixture?.result) {
+            console.log(`[ResultSettleCron] Fixture ${fixture.fixture_id} has no result available from API-Football yet`);
+            continue; // Still not finished or API has not updated
+          }
+          verifiedFixture = freshFixture;
 
-      if (unsettledPreds.empty) continue; // Already fully settled
+          // Update fixture with fresh result and status in database first
+          const { error: updateError } = await supabase
+            .from('fixtures')
+            .update({
+              result: freshFixture.result,
+              status: freshFixture.status,
+            })
+            .eq('fixture_id', fixture.fixture_id);
 
-      // 2. Get verified result from API (or use Firestore value if already FT)
-      let verifiedFixture: Fixture = fixture;
-      if (fixture.result === null) {
-        const freshFixture = await getFixtureResult(fixture.fixture_id);
-        if (!freshFixture?.result) continue; // Still not finished
-        verifiedFixture = freshFixture;
+          if (updateError) {
+            throw updateError;
+          }
+        }
 
-        // Update fixture in Firestore with fresh result
-        await fixtureDoc.ref.set(
-          { result: freshFixture.result, status: freshFixture.status },
-          { merge: true }
+        // 3. Trigger atomic settlement using our PostgreSQL RPC function
+        // This function will automatically update predictions, update user points, and set _settled_at on the fixture.
+        const { error: rpcError } = await supabase
+          .rpc('settle_fixture_predictions', {
+            target_fixture_id: verifiedFixture.fixture_id,
+            actual_result: verifiedFixture.result,
+          });
+
+        if (rpcError) {
+          throw rpcError;
+        }
+
+        settledFixtures.push(fixture.fixture_id);
+        console.log(
+          `[ResultSettleCron] Settled fixture ${fixture.fixture_id} (${fixture.home_team} vs ${fixture.away_team}) successfully via RPC.`
         );
+      } catch (err: unknown) {
+        console.error(`[ResultSettleCron] Error settling fixture ${fixture.fixture_id}:`, err);
+        const msg = err instanceof Error ? err.message : String(err);
+        errors.push(`Fixture ${fixture.fixture_id}: ${msg}`);
       }
-
-      // 3. Settle predictions
-      const predictions = unsettledPreds.docs.map((doc) => ({
-        _id: doc.id,
-        ...(doc.data() as Prediction),
-      }));
-
-      const scored = settleFixture(verifiedFixture, predictions);
-
-      // 4. Batch write: update predictions + update user.total_points atomically
-      const batch = db.batch();
-
-      for (const result of scored) {
-        // Update prediction document
-        const predRef = db.doc(`predictions/${result.prediction_id}`);
-        batch.update(predRef, {
-          is_correct: result.is_correct,
-          points_earned: result.points_earned,
-          editable: false,
-        });
-
-        // Atomically increment user's total_points and correct_predictions
-        const userRef = db.doc(`users/${result.user_id}`);
-        batch.update(userRef, {
-          total_points: FieldValue.increment(result.points_earned),
-          correct_predictions: result.is_correct
-            ? FieldValue.increment(1)
-            : FieldValue.increment(0),
-        });
-      }
-
-      // Mark fixture as settled
-      batch.update(fixtureDoc.ref, { _settled_at: new Date().toISOString() });
-
-      await batch.commit();
-      settledFixtures.push(fixture.fixture_id);
-
-      console.log(
-        `[ResultSettleCron] Settled fixture ${fixture.fixture_id} (${fixture.home_team} vs ${fixture.away_team}): ${scored.length} predictions processed`
-      );
     }
 
     return NextResponse.json({

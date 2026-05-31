@@ -1,79 +1,105 @@
 // GET /api/leaderboard
 // Returns top 20 users ordered by total_points DESC, plus the calling user's rank.
 // Tie-breaking: (1) most correct_predictions, (2) earliest registered_at
-// Requires Firebase ID token.
+// Uses Supabase SSR session cookie for authentication.
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getAdminAuth, getAdminFirestore } from '@/lib/firebase/admin';
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import { LeaderboardEntry } from '@/lib/types';
 
-export async function GET(request: NextRequest) {
-  // 1. Verify Firebase token
-  const authHeader = request.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
+export async function GET() {
+  const supabase = createClient();
+
+  // 1. Verify user is logged in
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  let uid: string;
-  try {
-    const decoded = await getAdminAuth().verifyIdToken(authHeader.split('Bearer ')[1]);
-    uid = decoded.uid;
-  } catch {
-    return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-  }
-
-  const db = getAdminFirestore();
+  const uid = user.id;
 
   try {
-    // 2. Query top 50 users (we need extra to find user's rank if outside top 20)
-    const usersSnap = await db
-      .collection('users')
-      .orderBy('total_points', 'desc')
-      .orderBy('correct_predictions', 'desc')
-      .orderBy('registered_at', 'asc')
-      .limit(50)
-      .get();
+    // 2. Fetch top 20 users
+    const { data: topUsers, error: topError } = await supabase
+      .from('users')
+      .select('uid, name, total_points, correct_predictions, registered_at')
+      .order('total_points', { ascending: false })
+      .order('correct_predictions', { ascending: false })
+      .order('registered_at', { ascending: true })
+      .limit(20);
 
-    const allUsers = usersSnap.docs.map((doc, index) => ({
-      uid: doc.id,
-      name: doc.data().name,
-      total_points: doc.data().total_points ?? 0,
-      correct_predictions: doc.data().correct_predictions ?? 0,
+    if (topError) {
+      throw topError;
+    }
+
+    const top20: LeaderboardEntry[] = (topUsers || []).map((doc, index) => ({
+      uid: doc.uid,
+      name: doc.name,
+      total_points: doc.total_points ?? 0,
+      correct_predictions: doc.correct_predictions ?? 0,
       rank: index + 1,
     }));
 
-    // 3. Top 20
-    const top20: LeaderboardEntry[] = allUsers.slice(0, 20);
+    // 3. Find calling user's rank
+    let ownEntry = top20.find((u) => u.uid === uid);
 
-    // 4. Find calling user's rank & today's points
-    let ownEntry = allUsers.find((u) => u.uid === uid);
-
-    // If user is outside top 50, fetch their doc separately
     if (!ownEntry) {
-      const userDoc = await db.doc(`users/${uid}`).get();
-      if (userDoc.exists) {
-        // Count users with more points (approximate rank)
-        const aboveSnap = await db
-          .collection('users')
-          .where('total_points', '>', userDoc.data()!.total_points)
-          .count()
-          .get();
-        const rank = aboveSnap.data().count + 1;
+      // User is outside the top 20, query their profile and exact rank
+      const { data: currentUser, error: userError } = await supabase
+        .from('users')
+        .select('uid, name, total_points, correct_predictions, registered_at')
+        .eq('uid', uid)
+        .single();
+
+      if (userError) {
+        throw userError;
+      }
+
+      if (currentUser) {
+        // Count how many users rank higher based on tie-breaking logic
+        
+        // A. Users with more points
+        const { count: pointsCount } = await supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true })
+          .gt('total_points', currentUser.total_points);
+
+        // B. Users with equal points but more correct predictions
+        const { count: correctCount } = await supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true })
+          .eq('total_points', currentUser.total_points)
+          .gt('correct_predictions', currentUser.correct_predictions);
+
+        // C. Users with equal points & correct predictions but earlier registration
+        const { count: tiesCount } = await supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true })
+          .eq('total_points', currentUser.total_points)
+          .eq('correct_predictions', currentUser.correct_predictions)
+          .lt('registered_at', currentUser.registered_at);
+
+        const rank = (pointsCount || 0) + (correctCount || 0) + (tiesCount || 0) + 1;
 
         ownEntry = {
           uid,
-          name: userDoc.data()!.name,
-          total_points: userDoc.data()!.total_points ?? 0,
-          correct_predictions: userDoc.data()!.correct_predictions ?? 0,
+          name: currentUser.name,
+          total_points: currentUser.total_points ?? 0,
+          correct_predictions: currentUser.correct_predictions ?? 0,
           rank,
         };
       }
     }
 
+    // Get total player count
+    const { count: totalPlayers } = await supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true });
+
     return NextResponse.json({
       top20,
       own: ownEntry ?? null,
-      total_players: allUsers.length, // approximate
+      total_players: totalPlayers || top20.length,
     });
   } catch (err) {
     console.error('[/api/leaderboard] Error:', err);

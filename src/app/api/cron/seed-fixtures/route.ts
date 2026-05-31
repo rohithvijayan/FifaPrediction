@@ -1,10 +1,10 @@
 // GET /api/cron/seed-fixtures
 // Scheduled: 0 1 * * * (01:00 UTC = 06:30 IST)
-// Seeds today's and tomorrow's fixtures from API-Football into Firestore.
+// Seeds today's and tomorrow's fixtures from API-Football into Supabase fixtures table.
 // Protected by CRON_SECRET header.
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminFirestore } from '@/lib/firebase/admin';
+import { createAdminClient } from '@/lib/supabase/server';
 import { getFixturesByDate, getISTDate } from '@/lib/api-football';
 import { Fixture } from '@/lib/types';
 
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   const tomorrowDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
   const tomorrow = getISTDate(tomorrowDate.toISOString());
 
-  const db = getAdminFirestore();
+  const supabase = createAdminClient();
   const results: Record<string, { seeded: number; date: string }> = {};
 
   for (const date of [today, tomorrow]) {
@@ -34,20 +34,32 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Batch write to Firestore
-      const batch = db.batch();
-      fixtures.forEach((fixture: Fixture) => {
-        const ref = db.doc(`fixtures/${fixture.fixture_id}`);
-        batch.set(ref, {
-          ...fixture,
-          // Preserve existing result/status if already settled
-          _seeded_at: new Date().toISOString(),
-        }, { merge: true });
-      });
+      // Upsert into Supabase fixtures table
+      const payload = fixtures.map((fixture: Fixture) => ({
+        fixture_id: fixture.fixture_id,
+        match_date: fixture.match_date,
+        kickoff_utc: fixture.kickoff_utc,
+        kickoff_ist: fixture.kickoff_ist,
+        home_team: fixture.home_team,
+        away_team: fixture.away_team,
+        home_team_logo: fixture.home_team_logo || null,
+        away_team_logo: fixture.away_team_logo || null,
+        home_score: fixture.home_score,
+        away_score: fixture.away_score,
+        status: fixture.status,
+        result: fixture.result,
+        _seeded_at: new Date().toISOString(),
+      }));
 
-      await batch.commit();
+      const { error } = await supabase
+        .from('fixtures')
+        .upsert(payload, { onConflict: 'fixture_id' });
+
+      if (error) {
+        throw error;
+      }
+
       results[date] = { seeded: fixtures.length, date };
-
       console.log(`[FixtureSeedCron] Seeded ${fixtures.length} fixtures for ${date}`);
     } catch (err) {
       console.error(`[FixtureSeedCron] Error seeding ${date}:`, err);

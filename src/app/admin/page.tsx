@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase/client';
+import { supabase } from '@/lib/supabase/client';
 import { Fixture } from '@/lib/types';
 
 export default function AdminPage() {
@@ -17,12 +16,16 @@ export default function AdminPage() {
     const fetchFixtures = async () => {
       try {
         const today = new Date().toISOString().split('T')[0];
-        const q = query(
-          collection(db, 'fixtures'),
-          where('match_date', '==', today)
-        );
-        const snap = await getDocs(q);
-        const fixtureList = snap.docs.map((d) => d.data() as Fixture);
+        const { data: dbFixtures, error: dbError } = await supabase
+          .from('fixtures')
+          .select('*')
+          .eq('match_date', today);
+
+        if (dbError) {
+          throw dbError;
+        }
+
+        const fixtureList = (dbFixtures || []) as Fixture[];
         fixtureList.sort((a, b) => new Date(a.kickoff_utc).getTime() - new Date(b.kickoff_utc).getTime());
         setFixtures(fixtureList);
       } catch (err) {

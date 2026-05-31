@@ -2,13 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { doc, getDoc, collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase/client';
+import { supabase } from '@/lib/supabase/client';
 import { User, Prediction, Fixture } from '@/lib/types';
 
 interface PredictionWithFixture extends Prediction {
   fixture?: Fixture;
   _id: string;
+}
+
+interface DBJoinedPrediction {
+  user_id: string;
+  fixture_id: number;
+  predicted_result: 'H' | 'D' | 'A';
+  editable: boolean;
+  points_earned: number;
+  is_correct: boolean | null;
+  submitted_at: string;
+  fixture: Fixture | null;
 }
 
 const formatDate = (ts: unknown): string => {
@@ -27,33 +37,47 @@ export default function ProfilePage() {
     if (!user) return;
     const fetchProfile = async () => {
       try {
-        // Fetch user profile
-        const userSnap = await getDoc(doc(db, 'users', user.uid));
-        if (userSnap.exists()) {
-          setProfile(userSnap.data() as User);
+        // Fetch user profile from Supabase public.users
+        const { data: userProfile, error: profileError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('uid', user.uid)
+          .single();
+
+        if (profileError) {
+          throw profileError;
         }
 
-        // Fetch recent predictions (last 20)
-        const predsQuery = query(
-          collection(db, 'predictions'),
-          where('user_id', '==', user.uid),
-          orderBy('submitted_at', 'desc'),
-          limit(20)
-        );
-        const predsSnap = await getDocs(predsQuery);
-
-        const preds: PredictionWithFixture[] = [];
-        for (const predDoc of predsSnap.docs) {
-          const pred = { _id: predDoc.id, ...predDoc.data() } as PredictionWithFixture;
-
-          // Fetch fixture for each prediction
-          const fixtureSnap = await getDoc(doc(db, 'fixtures', String(pred.fixture_id)));
-          if (fixtureSnap.exists()) {
-            pred.fixture = fixtureSnap.data() as Fixture;
-          }
-          preds.push(pred);
+        if (userProfile) {
+          setProfile(userProfile as User);
         }
-        setHistory(preds);
+
+        // Fetch recent predictions (last 20) with joined fixture details in a single query
+        const { data: predsData, error: predsError } = await supabase
+          .from('predictions')
+          .select('*, fixture:fixtures(*)')
+          .eq('user_id', user.uid)
+          .order('submitted_at', { ascending: false })
+          .limit(20);
+
+        if (predsError) {
+          throw predsError;
+        }
+
+        if (predsData) {
+          const mappedHistory = (predsData as unknown as DBJoinedPrediction[]).map((pred) => ({
+            _id: `${pred.user_id}_${pred.fixture_id}`,
+            user_id: pred.user_id,
+            fixture_id: pred.fixture_id,
+            predicted_result: pred.predicted_result,
+            editable: pred.editable,
+            points_earned: pred.points_earned,
+            is_correct: pred.is_correct,
+            submitted_at: pred.submitted_at,
+            fixture: pred.fixture || undefined,
+          }));
+          setHistory(mappedHistory);
+        }
       } catch (err) {
         console.error('[Profile] Error:', err);
       } finally {

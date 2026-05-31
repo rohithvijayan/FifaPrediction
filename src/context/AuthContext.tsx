@@ -1,19 +1,18 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import {
-  User as FirebaseUser,
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  updateProfile,
-} from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase/client';
+import { supabase } from '@/lib/supabase/client';
+import { User as SupabaseUser } from '@supabase/supabase-js';
+
+export interface AuthUser {
+  uid: string;
+  email: string | undefined;
+  displayName: string;
+  getIdToken: () => Promise<string>;
+}
 
 interface AuthContextType {
-  user: FirebaseUser | null;
+  user: AuthUser | null;
   loading: boolean;
   signUp: (name: string, email: string, password: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
@@ -23,55 +22,81 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Maps a Supabase user/session to our unified AuthUser type
+  const mapSessionUser = (sessionUser: SupabaseUser): AuthUser => {
+    return {
+      uid: sessionUser.id,
+      email: sessionUser.email,
+      displayName: sessionUser.user_metadata?.name || 'Player',
+      getIdToken: async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        return session?.access_token || '';
+      },
+    };
+  };
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
+    // 1. Check current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(mapSessionUser(session.user));
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
-    return unsubscribe;
+
+    // 2. Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(mapSessionUser(session.user));
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = async (name: string, email: string, password: string) => {
-    const credential = await createUserWithEmailAndPassword(auth, email, password);
-    await updateProfile(credential.user, { displayName: name });
-
-    // Create user document in Firestore
-    await setDoc(doc(db, 'users', credential.user.uid), {
-      uid: credential.user.uid,
-      name,
+    const { error } = await supabase.auth.signUp({
       email,
-      total_points: 0,
-      correct_predictions: 0,
-      registered_at: serverTimestamp(),
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+        data: {
+          name,
+        },
+      },
     });
 
-    // Set session cookie for middleware
-    const idToken = await credential.user.getIdToken();
-    await fetch('/api/auth/session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken }),
-    });
+    if (error) {
+      throw error;
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const credential = await signInWithEmailAndPassword(auth, email, password);
-    // Set session cookie for middleware
-    const idToken = await credential.user.getIdToken();
-    await fetch('/api/auth/session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken }),
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
+
+    if (error) {
+      throw error;
+    }
   };
 
   const signOut = async () => {
-    await firebaseSignOut(auth);
-    // Clear session cookie
-    await fetch('/api/auth/session', { method: 'DELETE' });
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      throw error;
+    }
   };
 
   return (
