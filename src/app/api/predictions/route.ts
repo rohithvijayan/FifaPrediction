@@ -5,7 +5,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { PredictionResult } from '@/lib/types';
+import { PredictionResult, Fixture } from '@/lib/types';
+
+import { getLiveFixture } from '@/lib/api-football';
 
 const VALID_RESULTS: PredictionResult[] = ['H', 'D', 'A'];
 
@@ -41,13 +43,58 @@ export async function POST(request: NextRequest) {
 
   try {
     // 3. Fetch fixture to check kickoff lock
-    const { data: fixture, error: fixtureError } = await supabase
+    let fixture: Fixture | null = null;
+    const { data: dbFixture, error: fixtureError } = await supabase
       .from('fixtures')
       .select('*')
       .eq('fixture_id', fixture_id)
-      .single();
+      .maybeSingle();
 
-    if (fixtureError || !fixture) {
+    if (fixtureError) {
+      throw fixtureError;
+    }
+
+    if (!dbFixture) {
+      // Self-healing: if the fixture has not been seeded in the DB yet,
+      // fetch it dynamically from API-Football / Mock generator and insert it
+      try {
+        const freshFixture = await getLiveFixture(fixture_id);
+        if (!freshFixture) {
+          return NextResponse.json({ error: 'Fixture not found' }, { status: 404 });
+        }
+
+        const { error: insertError } = await supabase
+          .from('fixtures')
+          .insert({
+            fixture_id: freshFixture.fixture_id,
+            match_date: freshFixture.match_date,
+            kickoff_utc: freshFixture.kickoff_utc,
+            kickoff_ist: freshFixture.kickoff_ist,
+            home_team: freshFixture.home_team,
+            away_team: freshFixture.away_team,
+            home_team_logo: freshFixture.home_team_logo || null,
+            away_team_logo: freshFixture.away_team_logo || null,
+            home_score: freshFixture.home_score,
+            away_score: freshFixture.away_score,
+            status: freshFixture.status,
+            result: freshFixture.result,
+            _seeded_at: new Date().toISOString(),
+          });
+
+        if (insertError) {
+          throw insertError;
+        }
+
+        fixture = freshFixture;
+      } catch (err) {
+        console.error('[/api/predictions] Failed to dynamically seed fixture:', err);
+        return NextResponse.json({ error: 'Fixture not found' }, { status: 404 });
+      }
+    } else {
+      fixture = dbFixture;
+    }
+
+    if (!fixture) {
       return NextResponse.json({ error: 'Fixture not found' }, { status: 404 });
     }
 
