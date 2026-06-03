@@ -21,7 +21,7 @@ export default function Sidebar() {
     <aside className="sidebar" aria-label="Main navigation">
       {/* Brand */}
       <div className="sidebar-brand">
-        <div className="sidebar-brand-name">ഗോൾ ഗുരു</div>
+        <div className="sidebar-brand-name">പന്ത്ദുനിയ</div>
         <div className="sidebar-brand-points">World Cup 2026</div>
       </div>
 

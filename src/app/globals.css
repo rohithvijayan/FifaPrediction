@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Anybody:ital,wdth,wght@0,75..125,100..900;1,75..125,100..900&family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anek+Malayalam:wdth,wght@75..125,100..800&family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
 
 /* ============================================
@@ -55,7 +55,7 @@
   --color-inverse-primary:          #006c49;
 
   /* Typography */
-  --font-headline: 'Anybody', sans-serif;
+  --font-headline: 'Anek Malayalam', sans-serif;
   --font-body:     'Hanken Grotesk', sans-serif;
 
   /* Spacing */

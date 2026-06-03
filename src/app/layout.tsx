@@ -4,17 +4,17 @@ import { AuthProvider } from '@/context/AuthContext';
 
 export const metadata: Metadata = {
   title: {
-    default: 'ഗോൾ ഗുരു | Goal Guru — World Cup 2026 Prediction',
-    template: '%s | Goal Guru',
+    default: 'പന്ത്ദുനിയ | Panth Duniya — World Cup 2026 Prediction',
+    template: '%s | Panth Duniya',
   },
   description:
     'Predict FIFA World Cup 2026 matches, earn points, and climb the global leaderboard. Free to play — built for Keralites.',
-  keywords: ['FIFA World Cup 2026', 'football prediction', 'Goal Guru', 'ഗോൾ ഗുരു', 'leaderboard'],
+  keywords: ['FIFA World Cup 2026', 'football prediction', 'Panth Duniya', 'പന്ത്ദുനിയ', 'leaderboard'],
   openGraph: {
     type: 'website',
-    title: 'Goal Guru — World Cup 2026 Prediction',
+    title: 'Panth Duniya — World Cup 2026 Prediction',
     description: 'Predict matches. Earn points. Conquer the leaderboard.',
-    siteName: 'Goal Guru',
+    siteName: 'Panth Duniya',
   },
 };
 

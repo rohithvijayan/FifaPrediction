@@ -65,7 +65,7 @@ export default function RegisterPage() {
         />
         <div className="auth-hero-overlay" />
         <div className="auth-hero-content fade-in-up">
-          <div className="auth-brand-title">ഗോൾ ഗുരു</div>
+          <div className="auth-brand-title">പന്ത്ദുനിയ</div>
           <div className="auth-brand-divider" />
           <div className="auth-brand-subtitle">World Cup 2026 Prediction Hub</div>
         </div>
@@ -77,7 +77,7 @@ export default function RegisterPage() {
           {/* Mobile-only hero text */}
           <div className="auth-mobile-brand">
             <div style={{ fontFamily: 'var(--font-headline)', fontSize: 28, fontWeight: 800, color: 'var(--color-primary)' }}>
-              ഗോൾ ഗുരു
+              പന്ത്ദുനിയ
             </div>
           </div>
 

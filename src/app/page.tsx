@@ -28,7 +28,7 @@ export default function HomePage() {
   return (
     <main className="landing-page">
       <div className="fade-in-up">
-        <div className="landing-logo">ഗോൾ ഗുരു</div>
+        <div className="landing-logo">പന്ത്ദുനിയ</div>
         <div className="landing-subtitle">World Cup 2026 Prediction Hub</div>
         <p className="landing-tagline">
           <strong>4 matches.</strong> 4 picks. 10 points each.{' '}

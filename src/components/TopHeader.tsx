@@ -13,7 +13,7 @@ const pageTitles: Record<string, string> = {
 export default function TopHeader() {
   const pathname = usePathname();
   const { user } = useAuth();
-  const title = Object.entries(pageTitles).find(([key]) => pathname.startsWith(key))?.[1] ?? 'Goal Guru';
+  const title = Object.entries(pageTitles).find(([key]) => pathname.startsWith(key))?.[1] ?? 'Panth Duniya';
 
   const displayName = user?.displayName || 'P';
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -22,7 +22,7 @@ export default function TopHeader() {
     <header className="app-header" role="banner">
       <div className="app-header-left">
         {/* Mobile brand */}
-        <span className="mobile-brand mobile-only">ഗോൾ ഗുരു</span>
+        <span className="mobile-brand mobile-only">പന്ത്ദുനിയ</span>
         {/* Desktop title */}
         <h1 className="app-header-title desktop-only">{title}</h1>
       </div>
