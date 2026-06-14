@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Routes that require authentication
-const protectedRoutes = ['/dashboard', '/leaderboard', '/profile', '/admin'];
-// Routes that should redirect to dashboard if already logged in
+const protectedRoutes = ['/predict', '/leaderboard', '/profile', '/admin'];
+// Routes that should redirect to predict page if already logged in
 const authRoutes = ['/login', '/register'];
 
 export async function middleware(request: NextRequest) {
@@ -49,7 +49,7 @@ export async function middleware(request: NextRequest) {
       console.error('[Middleware] Supabase session refresh failed:', err);
     }
   } else {
-    console.warn('[Middleware] Missing or placeholder NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY. Session refresh skipped.');
+    console.warn('[Middleware] Missing NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY. Session refresh skipped.');
   }
 
   const isProtectedRoute = protectedRoutes.some((route) =>
@@ -64,7 +64,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isAuthRoute && user) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/predict', request.url));
   }
 
   return response;
@@ -72,6 +72,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|images).*)',
   ],
 };

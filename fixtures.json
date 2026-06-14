@@ -1,0 +1,554 @@
+{
+    "tournament": "FIFA World Cup 2026",
+    "timezone": "IST",
+    "fixtures": [
+        {
+            "matchNumber": 1,
+            "date": "2026-06-12",
+            "time": "12:30 AM",
+            "fixture": "Mexico vs South Africa",
+            "venue": "Mexico City"
+        },
+        {
+            "matchNumber": 2,
+            "date": "2026-06-12",
+            "time": "07:30 AM",
+            "fixture": "South Korea vs Czechia",
+            "venue": "Zapopan"
+        },
+        {
+            "matchNumber": 3,
+            "date": "2026-06-13",
+            "time": "12:30 AM",
+            "fixture": "Canada vs Bosnia and Herzegovina",
+            "venue": "Toronto"
+        },
+        {
+            "matchNumber": 4,
+            "date": "2026-06-13",
+            "time": "06:30 AM",
+            "fixture": "USA vs Paraguay",
+            "venue": "Los Angeles"
+        },
+        {
+            "matchNumber": 5,
+            "date": "2026-06-14",
+            "time": "12:30 AM",
+            "fixture": "Qatar vs Switzerland",
+            "venue": "Santa Clara"
+        },
+        {
+            "matchNumber": 6,
+            "date": "2026-06-14",
+            "time": "03:30 AM",
+            "fixture": "Brazil vs Morocco",
+            "venue": "New Jersey"
+        },
+        {
+            "matchNumber": 7,
+            "date": "2026-06-14",
+            "time": "06:30 AM",
+            "fixture": "Haiti vs Scotland",
+            "venue": "Foxborough"
+        },
+        {
+            "matchNumber": 8,
+            "date": "2026-06-14",
+            "time": "09:30 AM",
+            "fixture": "Australia vs Turkey",
+            "venue": "Vancouver"
+        },
+        {
+            "matchNumber": 9,
+            "date": "2026-06-14",
+            "time": "10:30 PM",
+            "fixture": "Germany vs Curaçao",
+            "venue": "Houston"
+        },
+        {
+            "matchNumber": 10,
+            "date": "2026-06-15",
+            "time": "01:30 AM",
+            "fixture": "Netherlands vs Japan",
+            "venue": "Arlington"
+        },
+        {
+            "matchNumber": 11,
+            "date": "2026-06-15",
+            "time": "04:30 AM",
+            "fixture": "Ivory Coast vs Ecuador",
+            "venue": "Philadelphia"
+        },
+        {
+            "matchNumber": 12,
+            "date": "2026-06-15",
+            "time": "07:30 AM",
+            "fixture": "Sweden vs Tunisia",
+            "venue": "Guadalajara"
+        },
+        {
+            "matchNumber": 13,
+            "date": "2026-06-15",
+            "time": "09:30 PM",
+            "fixture": "Spain vs Cape Verde",
+            "venue": "Atlanta"
+        },
+        {
+            "matchNumber": 14,
+            "date": "2026-06-16",
+            "time": "12:30 AM",
+            "fixture": "Belgium vs Egypt",
+            "venue": "Seattle"
+        },
+        {
+            "matchNumber": 15,
+            "date": "2026-06-16",
+            "time": "03:30 AM",
+            "fixture": "Saudi Arabia vs Uruguay",
+            "venue": "Miami"
+        },
+        {
+            "matchNumber": 16,
+            "date": "2026-06-16",
+            "time": "06:30 AM",
+            "fixture": "Iran vs New Zealand",
+            "venue": "Los Angeles"
+        },
+        {
+            "matchNumber": 17,
+            "date": "2026-06-17",
+            "time": "12:30 AM",
+            "fixture": "France vs Senegal",
+            "venue": "New Jersey"
+        },
+        {
+            "matchNumber": 18,
+            "date": "2026-06-17",
+            "time": "03:30 AM",
+            "fixture": "Iraq vs Norway",
+            "venue": "Foxborough"
+        },
+        {
+            "matchNumber": 19,
+            "date": "2026-06-17",
+            "time": "06:30 AM",
+            "fixture": "Argentina vs Algeria",
+            "venue": "Kansas City"
+        },
+        {
+            "matchNumber": 20,
+            "date": "2026-06-17",
+            "time": "09:30 AM",
+            "fixture": "Austria vs Jordan",
+            "venue": "Santa Clara"
+        },
+        {
+            "matchNumber": 21,
+            "date": "2026-06-17",
+            "time": "10:30 PM",
+            "fixture": "Portugal vs DR Congo",
+            "venue": "Houston"
+        },
+        {
+            "matchNumber": 22,
+            "date": "2026-06-18",
+            "time": "01:30 AM",
+            "fixture": "England vs Croatia",
+            "venue": "Arlington"
+        },
+        {
+            "matchNumber": 23,
+            "date": "2026-06-18",
+            "time": "04:30 AM",
+            "fixture": "Ghana vs Panama",
+            "venue": "Toronto"
+        },
+        {
+            "matchNumber": 24,
+            "date": "2026-06-18",
+            "time": "07:30 AM",
+            "fixture": "Uzbekistan vs Colombia",
+            "venue": "Mexico City"
+        },
+        {
+            "matchNumber": 25,
+            "date": "2026-06-18",
+            "time": "09:30 PM",
+            "fixture": "Czechia vs South Africa",
+            "venue": "Atlanta"
+        },
+        {
+            "matchNumber": 26,
+            "date": "2026-06-19",
+            "time": "12:30 AM",
+            "fixture": "Switzerland vs Bosnia and Herzegovina",
+            "venue": "Los Angeles"
+        },
+        {
+            "matchNumber": 27,
+            "date": "2026-06-19",
+            "time": "03:30 AM",
+            "fixture": "Canada vs Qatar",
+            "venue": "Vancouver"
+        },
+        {
+            "matchNumber": 28,
+            "date": "2026-06-19",
+            "time": "06:30 AM",
+            "fixture": "Mexico vs South Korea",
+            "venue": "Zapopan"
+        },
+        {
+            "matchNumber": 29,
+            "date": "2026-06-20",
+            "time": "12:30 AM",
+            "fixture": "USA vs Australia",
+            "venue": "Seattle"
+        },
+        {
+            "matchNumber": 30,
+            "date": "2026-06-20",
+            "time": "03:30 AM",
+            "fixture": "Scotland vs Morocco",
+            "venue": "Foxborough"
+        },
+        {
+            "matchNumber": 31,
+            "date": "2026-06-20",
+            "time": "06:00 AM",
+            "fixture": "Brazil vs Haiti",
+            "venue": "Philadelphia"
+        },
+        {
+            "matchNumber": 32,
+            "date": "2026-06-20",
+            "time": "08:30 AM",
+            "fixture": "Turkey vs Paraguay",
+            "venue": "Santa Clara"
+        },
+        {
+            "matchNumber": 33,
+            "date": "2026-06-20",
+            "time": "10:30 PM",
+            "fixture": "Netherlands vs Sweden",
+            "venue": "Houston"
+        },
+        {
+            "matchNumber": 34,
+            "date": "2026-06-21",
+            "time": "01:30 AM",
+            "fixture": "Germany vs Ivory Coast",
+            "venue": "Toronto"
+        },
+        {
+            "matchNumber": 35,
+            "date": "2026-06-21",
+            "time": "05:30 AM",
+            "fixture": "Ecuador vs Curaçao",
+            "venue": "Kansas City"
+        },
+        {
+            "matchNumber": 36,
+            "date": "2026-06-21",
+            "time": "09:30 AM",
+            "fixture": "Tunisia vs Japan",
+            "venue": "Guadalajara"
+        },
+        {
+            "matchNumber": 37,
+            "date": "2026-06-21",
+            "time": "09:30 PM",
+            "fixture": "Spain vs Saudi Arabia",
+            "venue": "Atlanta"
+        },
+        {
+            "matchNumber": 38,
+            "date": "2026-06-22",
+            "time": "12:30 AM",
+            "fixture": "Belgium vs Iran",
+            "venue": "Los Angeles"
+        },
+        {
+            "matchNumber": 39,
+            "date": "2026-06-22",
+            "time": "03:30 AM",
+            "fixture": "Uruguay vs Cape Verde",
+            "venue": "Miami"
+        },
+        {
+            "matchNumber": 40,
+            "date": "2026-06-22",
+            "time": "06:30 AM",
+            "fixture": "New Zealand vs Egypt",
+            "venue": "Vancouver"
+        },
+        {
+            "matchNumber": 41,
+            "date": "2026-06-22",
+            "time": "10:30 PM",
+            "fixture": "Argentina vs Austria",
+            "venue": "Arlington"
+        },
+        {
+            "matchNumber": 42,
+            "date": "2026-06-23",
+            "time": "02:30 AM",
+            "fixture": "France vs Iraq",
+            "venue": "Philadelphia"
+        },
+        {
+            "matchNumber": 43,
+            "date": "2026-06-23",
+            "time": "05:30 AM",
+            "fixture": "Norway vs Senegal",
+            "venue": "Toronto"
+        },
+        {
+            "matchNumber": 44,
+            "date": "2026-06-23",
+            "time": "08:30 AM",
+            "fixture": "Jordan vs Algeria",
+            "venue": "Santa Clara"
+        },
+        {
+            "matchNumber": 45,
+            "date": "2026-06-23",
+            "time": "10:30 PM",
+            "fixture": "Portugal vs Uzbekistan",
+            "venue": "Houston"
+        },
+        {
+            "matchNumber": 46,
+            "date": "2026-06-24",
+            "time": "01:30 AM",
+            "fixture": "England vs Ghana",
+            "venue": "Foxborough"
+        },
+        {
+            "matchNumber": 47,
+            "date": "2026-06-24",
+            "time": "04:30 AM",
+            "fixture": "Panama vs Croatia",
+            "venue": "Foxborough"
+        },
+        {
+            "matchNumber": 48,
+            "date": "2026-06-24",
+            "time": "07:30 AM",
+            "fixture": "Colombia vs DR Congo",
+            "venue": "Zapopan"
+        },
+        {
+            "matchNumber": 49,
+            "date": "2026-06-25",
+            "time": "12:30 AM",
+            "fixture": "Switzerland vs Canada",
+            "venue": "Vancouver"
+        },
+        {
+            "matchNumber": 50,
+            "date": "2026-06-25",
+            "time": "12:30 AM",
+            "fixture": "Bosnia and Herzegovina vs Qatar",
+            "venue": "Seattle"
+        },
+        {
+            "matchNumber": 51,
+            "date": "2026-06-25",
+            "time": "03:30 AM",
+            "fixture": "Morocco vs Haiti",
+            "venue": "Atlanta"
+        },
+        {
+            "matchNumber": 52,
+            "date": "2026-06-25",
+            "time": "03:30 AM",
+            "fixture": "Scotland vs Brazil",
+            "venue": "Miami"
+        },
+        {
+            "matchNumber": 53,
+            "date": "2026-06-25",
+            "time": "06:30 AM",
+            "fixture": "South Africa vs South Korea",
+            "venue": "Guadalajara"
+        },
+        {
+            "matchNumber": 54,
+            "date": "2026-06-25",
+            "time": "06:30 AM",
+            "fixture": "Czechia vs Mexico",
+            "venue": "Mexico City"
+        },
+        {
+            "matchNumber": 55,
+            "date": "2026-06-26",
+            "time": "01:30 AM",
+            "fixture": "Curaçao vs Ivory Coast",
+            "venue": "Philadelphia"
+        },
+        {
+            "matchNumber": 56,
+            "date": "2026-06-26",
+            "time": "01:30 AM",
+            "fixture": "Ecuador vs Germany",
+            "venue": "New Jersey"
+        },
+        {
+            "matchNumber": 57,
+            "date": "2026-06-26",
+            "time": "04:30 AM",
+            "fixture": "Tunisia vs Netherlands",
+            "venue": "Kansas City"
+        },
+        {
+            "matchNumber": 58,
+            "date": "2026-06-26",
+            "time": "04:30 AM",
+            "fixture": "Japan vs Sweden",
+            "venue": "Arlington"
+        },
+        {
+            "matchNumber": 59,
+            "date": "2026-06-26",
+            "time": "07:30 AM",
+            "fixture": "Turkey vs USA",
+            "venue": "Los Angeles"
+        },
+        {
+            "matchNumber": 60,
+            "date": "2026-06-26",
+            "time": "07:30 AM",
+            "fixture": "Paraguay vs Australia",
+            "venue": "Santa Clara"
+        },
+        {
+            "matchNumber": 61,
+            "date": "2026-06-27",
+            "time": "12:30 AM",
+            "fixture": "Norway vs France",
+            "venue": "Foxborough"
+        },
+        {
+            "matchNumber": 62,
+            "date": "2026-06-27",
+            "time": "12:30 AM",
+            "fixture": "Senegal vs Iraq",
+            "venue": "Toronto"
+        },
+        {
+            "matchNumber": 63,
+            "date": "2026-06-27",
+            "time": "05:30 AM",
+            "fixture": "Cape Verde vs Saudi Arabia",
+            "venue": "Houston"
+        },
+        {
+            "matchNumber": 64,
+            "date": "2026-06-27",
+            "time": "05:30 AM",
+            "fixture": "Uruguay vs Spain",
+            "venue": "Zapopan"
+        },
+        {
+            "matchNumber": 65,
+            "date": "2026-06-27",
+            "time": "08:30 AM",
+            "fixture": "New Zealand vs Belgium",
+            "venue": "Vancouver"
+        },
+        {
+            "matchNumber": 66,
+            "date": "2026-06-27",
+            "time": "08:30 AM",
+            "fixture": "Egypt vs Iran",
+            "venue": "Seattle"
+        },
+        {
+            "matchNumber": 67,
+            "date": "2026-06-28",
+            "time": "02:30 AM",
+            "fixture": "Panama vs England",
+            "venue": "New Jersey"
+        },
+        {
+            "matchNumber": 68,
+            "date": "2026-06-28",
+            "time": "02:30 AM",
+            "fixture": "Croatia vs Ghana",
+            "venue": "Philadelphia"
+        },
+        {
+            "matchNumber": 69,
+            "date": "2026-06-28",
+            "time": "05:00 AM",
+            "fixture": "Colombia vs Portugal",
+            "venue": "Miami"
+        },
+        {
+            "matchNumber": 70,
+            "date": "2026-06-28",
+            "time": "05:00 AM",
+            "fixture": "DR Congo vs Uzbekistan",
+            "venue": "Atlanta"
+        },
+        {
+            "matchNumber": 71,
+            "date": "2026-06-28",
+            "time": "07:30 AM",
+            "fixture": "Algeria vs Austria",
+            "venue": "Kansas City"
+        },
+        {
+            "matchNumber": 72,
+            "date": "2026-06-28",
+            "time": "07:30 AM",
+            "fixture": "Jordan vs Argentina",
+            "venue": "Arlington"
+        },
+        {
+            "matchNumber": "73-88",
+            "stage": "Round of 32",
+            "date": "June 29 - July 4, 2026",
+            "time": "Late night / early morning IST",
+            "fixture": "TBD"
+        },
+        {
+            "matchNumber": "89-96",
+            "stage": "Round of 16",
+            "date": "July 5 - 8, 2026",
+            "time": "Late night / early morning IST",
+            "fixture": "TBD"
+        },
+        {
+            "matchNumber": "97-100",
+            "stage": "Quarter-finals",
+            "date": "July 10 - 12, 2026",
+            "time": "Late night / early morning IST",
+            "fixture": "TBD"
+        },
+        {
+            "matchNumber": "101-102",
+            "stage": "Semi-finals",
+            "date": "July 15 - 16, 2026",
+            "time": "12:30 AM IST",
+            "fixture": "TBD"
+        },
+        {
+            "matchNumber": 103,
+            "stage": "Third-Place Play-Off",
+            "date": "July 19, 2026",
+            "time": "02:30 AM IST",
+            "fixture": "TBD",
+            "venue": "Miami"
+        },
+        {
+            "matchNumber": 104,
+            "stage": "Final",
+            "date": "July 20, 2026",
+            "time": "12:30 AM IST",
+            "fixture": "TBD",
+            "venue": "New Jersey"
+        }
+    ]
+}

@@ -1,0 +1,30 @@
+.audioToggleBtn {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background-color: rgba(18, 16, 43, 0.8);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.audioToggleBtn:hover {
+  background-color: rgba(255, 27, 145, 0.8);
+  border-color: #ff1b91;
+  transform: scale(1.05);
+}
+
+.audioToggleBtn:active {
+  transform: scale(0.95);
+}

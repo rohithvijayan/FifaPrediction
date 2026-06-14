@@ -1,20 +1,21 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
+import AudioPlayer from '@/app/components/AudioPlayer';
 
 export const metadata: Metadata = {
   title: {
-    default: 'പന്ത്ദുനിയ | Panth Duniya — World Cup 2026 Prediction',
-    template: '%s | Panth Duniya',
+    default: 'പന്ത്ദുനിയ | Panthduniya — World Cup 2026 Prediction',
+    template: '%s | പന്ത്ദുനിയ',
   },
   description:
-    'Predict FIFA World Cup 2026 matches, earn points, and climb the global leaderboard. Free to play — built for Keralites.',
-  keywords: ['FIFA World Cup 2026', 'football prediction', 'Panth Duniya', 'പന്ത്ദുനിയ', 'leaderboard'],
+    'Predict the FIFA World Cup 2026 winner, finalists, semi-finalists, Golden Boot & Glove winners. 6 questions, 100 points, zero fee. Built for football fans.',
+  keywords: ['FIFA World Cup 2026', 'football prediction', 'Panthduniya', 'പന്ത്ദുനിയ', 'leaderboard', 'prediction game'],
   openGraph: {
     type: 'website',
-    title: 'Panth Duniya — World Cup 2026 Prediction',
-    description: 'Predict matches. Earn points. Conquer the leaderboard.',
-    siteName: 'Panth Duniya',
+    title: 'പന്ത്ദുനിയ — World Cup 2026 Prediction Hub',
+    description: '6 questions. 100 points. Predict & conquer the leaderboard.',
+    siteName: 'പന്ത്ദുനിയ',
   },
 };
 
@@ -28,9 +29,13 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </head>
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <AudioPlayer />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

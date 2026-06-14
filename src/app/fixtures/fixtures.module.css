@@ -1,0 +1,227 @@
+.wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #0a0e1a;
+  color: #f3f4f6;
+}
+
+.main {
+  flex-grow: 1;
+  padding: 2rem 1.5rem 4rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.heroSection {
+  position: relative;
+  width: 100%;
+  height: 40vh;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-top: 0;
+}
+
+.heroImage {
+  object-fit: cover;
+  object-position: center 30%;
+  z-index: 1;
+}
+
+.heroOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(10, 14, 26, 0.4), #0a0e1a);
+  z-index: 2;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 3;
+  text-align: center;
+  padding: 0 1.5rem;
+  margin-top: 4rem;
+}
+
+.heroTitle {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.heroSubtitle {
+  color: #00d4aa;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  font-size: 1.125rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.headerControls {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.searchContainer {
+  margin-top: 1rem;
+}
+
+.searchInput {
+  width: 100%;
+  max-width: 300px;
+  padding: 0.75rem 1rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  color: #ffffff;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.searchInput:focus {
+  border-color: #00d4aa;
+  box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+}
+
+.fixturesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.dateGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dateHeader {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+  padding-bottom: 0.5rem;
+}
+
+.matchesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.matchRow {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 0.5rem;
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  transition: background-color 0.2s;
+}
+
+.matchRow:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.matchTeams {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 1rem;
+}
+
+.teamLeft {
+  flex: 1;
+  text-align: right;
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: #ffffff;
+}
+
+.teamRight {
+  flex: 1;
+  text-align: left;
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: #ffffff;
+}
+
+.matchTimeScore {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+}
+
+.timeBadge {
+  background-color: rgba(0, 212, 170, 0.1);
+  color: #00d4aa;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tbdFixture {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tbdText {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.matchMeta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metaDot {
+  color: #4b5563;
+}
+
+.noResults {
+  text-align: center;
+  color: #9ca3af;
+  padding: 3rem 0;
+  font-size: 1.125rem;
+}
+
+@media (max-width: 640px) {
+  .teamLeft, .teamRight {
+    font-size: 1rem;
+  }
+  .matchTeams {
+    gap: 0.5rem;
+  }
+  .matchTimeScore {
+    padding: 0 0.5rem;
+  }
+}
