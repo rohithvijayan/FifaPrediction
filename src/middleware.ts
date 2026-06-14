@@ -1,4 +1,3 @@
-import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -10,64 +9,34 @@ const authRoutes = ['/login', '/register'];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  let response = NextResponse.next({
-    request,
-  });
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  let user = null;
-
-  // Gracefully handle missing or placeholder environment variables to prevent Edge Runtime 500 crashes
-  if (supabaseUrl && supabaseAnonKey && !supabaseUrl.includes('placeholder') && !supabaseAnonKey.includes('placeholder')) {
-    try {
-      const supabase = createServerClient(
-        supabaseUrl,
-        supabaseAnonKey,
-        {
-          cookies: {
-            getAll() {
-              return request.cookies.getAll();
-            },
-            setAll(cookiesToSet) {
-              cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-              response = NextResponse.next({
-                request,
-              });
-              cookiesToSet.forEach(({ name, value, options }) =>
-                response.cookies.set(name, value, options)
-              );
-            },
-          },
-        }
-      );
-
-      const { data } = await supabase.auth.getUser();
-      user = data?.user || null;
-    } catch (err) {
-      console.error('[Middleware] Supabase session refresh failed:', err);
-    }
-  } else {
-    console.warn('[Middleware] Missing NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY. Session refresh skipped.');
-  }
-
   const isProtectedRoute = protectedRoutes.some((route) =>
     pathname.startsWith(route)
   );
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
-  if (isProtectedRoute && !user) {
+  // Fast exit if route doesn't need protection or auth redirection
+  if (!isProtectedRoute && !isAuthRoute) {
+    return NextResponse.next();
+  }
+
+  // Optimistic edge-compatible auth check
+  // We check for any Supabase auth token cookie.
+  // Real validation happens on the client via layout.tsx
+  const hasAuthCookie = request.cookies.getAll().some(cookie => 
+    cookie.name.startsWith('sb-') && cookie.name.includes('-auth-token')
+  );
+
+  if (isProtectedRoute && !hasAuthCookie) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isAuthRoute && user) {
+  if (isAuthRoute && hasAuthCookie) {
     return NextResponse.redirect(new URL('/predict', request.url));
   }
 
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {

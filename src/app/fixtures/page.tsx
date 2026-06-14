@@ -108,7 +108,7 @@ export default function FixturesPage() {
           ))}
 
           {Object.keys(groupedFixtures).length === 0 && (
-            <div className={styles.noResults}>No matches found matching "{searchQuery}"</div>
+            <div className={styles.noResults}>No matches found matching &quot;{searchQuery}&quot;</div>
           )}
         </div>
       </main>

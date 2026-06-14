@@ -66,7 +66,7 @@ export default function PredictPage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [predictions, setPredictions] = useState<Record<number, Prediction>>({});
   const [actualResults, setActualResults] = useState<Record<number, ActualResult>>({});
-  const [formValues, setFormValues] = useState<Record<number, any>>({});
+  const [formValues, setFormValues] = useState<Record<number, Record<string, string>>>({});
   
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -101,11 +101,20 @@ export default function PredictPage() {
         if (pErr) throw pErr;
 
         // 4. Fetch user predictions
-        const { data: predData, error: predErr } = await supabase
-          .from('predictions')
-          .select('*')
-          .eq('user_id', user.uid);
-        if (predErr) throw predErr;
+        const predMap: Record<number, Prediction> = {};
+        if (user && user.uid) {
+          const { data: predData, error: predErr } = await supabase
+            .from('predictions')
+            .select('*')
+            .eq('user_id', user.uid);
+          if (predErr) throw predErr;
+
+          // Index predictions by question_id
+          predData?.forEach(p => {
+            predMap[p.question_id] = p;
+          });
+          setPredictions(predMap);
+        }
 
         // 5. Fetch actual results (for settled questions)
         const { data: actData, error: actErr } = await supabase
@@ -117,12 +126,6 @@ export default function PredictPage() {
         setTeams(tData || []);
         setPlayers(pData || []);
 
-        // Index predictions by question_id
-        const predMap: Record<number, Prediction> = {};
-        predData?.forEach(p => {
-          predMap[p.question_id] = p;
-        });
-        setPredictions(predMap);
 
         // Index actual results by question_id
         const actMap: Record<number, ActualResult> = {};
@@ -132,11 +135,11 @@ export default function PredictPage() {
         setActualResults(actMap);
 
         // Prepopulate form values from predictions
-        const initialFormValues: Record<number, any> = {};
+        const initialFormValues: Record<number, Record<string, string>> = {};
         qData?.forEach(q => {
           const pred = predMap[q.id];
           if (pred) {
-            const answer = pred.answer as any;
+            const answer = pred.answer as unknown as Record<string, string>;
             if (q.question_number <= 3) {
               initialFormValues[q.id] = { team: answer.team || '' };
             } else if (q.question_number <= 5) {
@@ -169,7 +172,7 @@ export default function PredictPage() {
           }
         });
         setFormValues(initialFormValues);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error fetching prediction page data:', err);
         setAlert({ type: 'error', message: 'Failed to load page data. Please try again.' });
       } finally {
@@ -196,7 +199,10 @@ export default function PredictPage() {
     emoji: t.flag_emoji
   }));
 
-  const goldenBootOptions = players
+  // Deduplicate players by name to prevent React key collision and duplicate options
+  const uniquePlayers = Array.from(new Map(players.map(p => [p.name, p])).values());
+
+  const goldenBootOptions = uniquePlayers
     .filter(p => !p.is_goalkeeper)
     .map(p => ({
       value: p.name,
@@ -204,7 +210,7 @@ export default function PredictPage() {
       emoji: getTeamFlagByCode(p.team_code) || '🏃'
     }));
 
-  const goldenGloveOptions = players
+  const goldenGloveOptions = uniquePlayers
     .filter(p => p.is_goalkeeper)
     .map(p => ({
       value: p.name,
@@ -217,7 +223,7 @@ export default function PredictPage() {
     return new Date(q.lock_date) <= new Date() || q.is_settled;
   };
 
-  const handleInputChange = (qId: number, field: string, value: any) => {
+  const handleInputChange = (qId: number, field: string, value: string) => {
     setFormValues(prev => ({
       ...prev,
       [qId]: {
@@ -263,7 +269,7 @@ export default function PredictPage() {
         const q = questions.find(question => question.id === qId);
         if (!q || isQuestionLocked(q)) return; // Don't write if locked
 
-        let answer: any = {};
+        let answer: Record<string, string | number> = {};
         if (q.question_number <= 3) {
           answer = { team: val.team };
         } else if (q.question_number <= 5) {
@@ -320,9 +326,10 @@ export default function PredictPage() {
 
       setAlert({ type: 'success', message: '🎉 Your predictions have been saved successfully!' });
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Submission error:', err);
-      setAlert({ type: 'error', message: `Failed to save predictions: ${err.message || 'Unknown error'}` });
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setAlert({ type: 'error', message: `Failed to save predictions: ${errorMessage}` });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setSubmitting(false);
@@ -371,9 +378,8 @@ export default function PredictPage() {
             const isLocked = isQuestionLocked(q);
             const isSettled = q.is_settled;
             const pred = predictions[q.id];
-            const answer = pred?.answer as any;
             const correctRes = actualResults[q.id];
-            const correctAns = correctRes?.answer as any;
+            const correctAns = correctRes?.answer as unknown as Record<string, string | number> | undefined;
             const value = formValues[q.id] || {};
 
             return (
@@ -521,7 +527,7 @@ export default function PredictPage() {
                           <div className={styles.correctAnswerText}>
                             {q.question_number <= 3 && (
                               <span>
-                                {getTeamFlag(correctAns.team)} {correctAns.team}
+                                {getTeamFlag(correctAns.team as string)} {correctAns.team}
                               </span>
                             )}
                             {(q.question_number === 4 || q.question_number === 5) && (
@@ -529,7 +535,7 @@ export default function PredictPage() {
                             )}
                             {q.question_number === 6 && (
                               <span>
-                                {getTeamFlag(correctAns.team1)} {correctAns.team1} ({correctAns.team1_score}) - ({correctAns.team2_score}) {getTeamFlag(correctAns.team2)} {correctAns.team2}
+                                {getTeamFlag(correctAns.team1 as string)} {correctAns.team1} ({correctAns.team1_score}) - ({correctAns.team2_score}) {getTeamFlag(correctAns.team2 as string)} {correctAns.team2}
                               </span>
                             )}
                           </div>
