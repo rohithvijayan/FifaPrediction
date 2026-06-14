@@ -12,7 +12,6 @@ export default function RulesPage() {
 
   const navItems = [
     { href: '/predict', label: 'Predict', icon: '⚽' },
-    { href: '/leaderboard', label: 'Ranks', icon: '🏆' },
     { href: '/rules', label: 'Rules', icon: '📜' },
     { href: '/profile', label: 'Profile', icon: '👤' },
   ];
