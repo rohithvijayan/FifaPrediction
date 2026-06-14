@@ -1,20 +1,11 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import styles from './AudioPlayer.module.css';
 
 export default function AudioPlayer() {
-  // Start muted=true because browsers block autoplay with sound.
-  // The video autoplays silently, and we show a prompt to unmute.
-  const [isMuted, setIsMuted] = useState(true);
-  const [showPrompt, setShowPrompt] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  // Show the "tap to unmute" prompt after a short delay
-  useEffect(() => {
-    const timer = setTimeout(() => setShowPrompt(true), 1500);
-    return () => clearTimeout(timer);
-  }, []);
 
   const toggleMute = () => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
@@ -33,32 +24,23 @@ export default function AudioPlayer() {
       }
     }
     setIsMuted(prev => !prev);
-    setShowPrompt(false);
   };
 
   return (
     <>
-      {/* Hidden YouTube iframe — starts muted so autoplay is allowed by browsers */}
       <iframe
         ref={iframeRef}
         width="0"
         height="0"
-        src="https://www.youtube.com/embed/WTJSt4wP2ME?enablejsapi=1&autoplay=1&mute=1&start=34"
+        src="https://www.youtube.com/embed/WTJSt4wP2ME?enablejsapi=1&autoplay=1&start=34"
         frameBorder="0"
         allow="autoplay; encrypted-media"
         style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
       ></iframe>
 
-      {/* Unmute prompt bubble */}
-      {showPrompt && isMuted && (
-        <div className={styles.unmutePrompt} onClick={toggleMute}>
-          🔇 Tap to unmute music
-        </div>
-      )}
-
       <button
         onClick={toggleMute}
-        className={`${styles.audioToggleBtn} ${showPrompt && isMuted ? styles.pulsing : ''}`}
+        className={styles.audioToggleBtn}
         aria-label={isMuted ? 'Unmute Audio' : 'Mute Audio'}
         title={isMuted ? 'Unmute background music' : 'Mute background music'}
       >
