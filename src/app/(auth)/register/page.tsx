@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -43,7 +43,7 @@ const COUNTRIES = [
 ];
 
 export default function RegisterPage() {
-  const { signUp } = useAuth();
+  const { user, loading: authLoading, signUp } = useAuth();
   const router = useRouter();
 
   // Basic fields
@@ -64,13 +64,36 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Filtered countries based on search
+  // Filtered countries based on search — must be declared before any early return (Rules of Hooks)
   const filteredCountries = useMemo(() => {
     const q = countrySearch.toLowerCase();
     return COUNTRIES.filter(
       (c) => c.name.toLowerCase().includes(q) || c.dial.includes(q) || c.code.toLowerCase().includes(q)
     );
   }, [countrySearch]);
+
+  // Redirect already-authenticated users away from the register page
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace('/predict');
+    }
+  }, [user, authLoading, router]);
+
+  // Show a minimal spinner while auth state resolves to avoid blank flash
+  if (authLoading) {
+    return (
+      <main className={styles.page}>
+        <div className={styles.bgGlow} />
+        <div className={styles.bgGlowPink} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+          <div style={{ width: 32, height: 32, border: '3px solid rgba(148,163,184,0.2)', borderTopColor: '#34d399', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        </div>
+      </main>
+    );
+  }
+
+  // Don't render the form if user is already logged in (redirect is in-flight)
+  if (user) return null;
 
   const handlePhoneChange = (val: string) => {
     // Strip non-digits and cap at max length for selected country
