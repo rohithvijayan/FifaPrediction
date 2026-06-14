@@ -1,11 +1,38 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import styles from './AudioPlayer.module.css';
 
 export default function AudioPlayer() {
   const [isMuted, setIsMuted] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Auto-play workaround: Modern browsers block autoplay with sound.
+  // We listen for the first user interaction (click or touch) on the page to start the music.
+  useEffect(() => {
+    const startAudio = () => {
+      if (iframeRef.current && iframeRef.current.contentWindow) {
+        // Send unMute and playVideo commands to the YouTube player
+        iframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*'
+        );
+        iframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*'
+        );
+      }
+      // Remove listeners so this only triggers once
+      window.removeEventListener('click', startAudio);
+      window.removeEventListener('touchstart', startAudio);
+    };
+
+    window.addEventListener('click', startAudio);
+    window.addEventListener('touchstart', startAudio);
+
+    return () => {
+      window.removeEventListener('click', startAudio);
+      window.removeEventListener('touchstart', startAudio);
+    };
+  }, []);
 
   const toggleMute = () => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
