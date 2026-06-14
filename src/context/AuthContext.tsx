@@ -8,13 +8,16 @@ export interface AuthUser {
   uid: string;
   email: string | undefined;
   displayName: string;
+  phone?: string;
+  district?: string;
+  pincode?: string;
   getIdToken: () => Promise<string>;
 }
 
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
-  signUp: (name: string, email: string, password: string) => Promise<void>;
+  signUp: (name: string, email: string, password: string, phone?: string, district?: string, pincode?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -31,6 +34,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       uid: sessionUser.id,
       email: sessionUser.email,
       displayName: sessionUser.user_metadata?.name || 'Player',
+      phone: sessionUser.user_metadata?.phone,
+      district: sessionUser.user_metadata?.district,
+      pincode: sessionUser.user_metadata?.pincode,
       getIdToken: async () => {
         const { data: { session } } = await supabase.auth.getSession();
         return session?.access_token || '';
@@ -64,7 +70,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const signUp = async (name: string, email: string, password: string) => {
+  const signUp = async (
+    name: string,
+    email: string,
+    password: string,
+    phone?: string,
+    district?: string,
+    pincode?: string,
+  ) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -72,6 +85,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         emailRedirectTo: `${window.location.origin}/predict`,
         data: {
           name,
+          ...(phone ? { phone } : {}),
+          ...(district ? { district } : {}),
+          ...(pincode ? { pincode } : {}),
         },
       },
     });
