@@ -3,131 +3,73 @@
 import { useState, useRef, useEffect } from 'react';
 import styles from './AudioPlayer.module.css';
 
-// Declare YT for TypeScript compiler and avoid using 'any'
-interface YTPlayer {
-  playVideo: () => void;
-  mute: () => void;
-  unMute: () => void;
-  isMuted: () => boolean;
-  getPlayerState: () => number;
-}
-
-interface YTEvent {
-  target: YTPlayer;
-  data?: number;
-}
-
-declare global {
-  interface Window {
-    onYouTubeIframeAPIReady?: () => void;
-    YT?: {
-      Player: new (element: HTMLIFrameElement | string, options: object) => YTPlayer;
-      PlayerState: {
-        PLAYING: number;
-      };
-    };
-  }
-}
-
 export default function AudioPlayer() {
-  const [isMuted, setIsMuted] = useState(false);
+  // Start as muted=true because browsers ALWAYS block unmuted autoplay.
+  // We start the video silently (mute=1 in URL), and on the first user
+  // interaction anywhere on the page, we unmute and start playing.
+  const [isMuted, setIsMuted] = useState(true);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const playerRef = useRef<YTPlayer | null>(null);
+  const hasUnmutedRef = useRef(false); // track if we've already unmuted on first interaction
+
+  const sendCommand = (func: string) => {
+    iframeRef.current?.contentWindow?.postMessage(
+      JSON.stringify({ event: 'command', func, args: [] }),
+      '*'
+    );
+  };
 
   useEffect(() => {
-    // 1. Load YouTube Iframe Player API script
-    if (!window.YT) {
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-    }
-
-    // 2. Define the callback for when the API is ready
-    const initPlayer = () => {
-      if (!iframeRef.current || !window.YT) return;
-      
-      playerRef.current = new window.YT.Player(iframeRef.current, {
-        events: {
-          onReady: (event: YTEvent) => {
-            // Attempt to autoplay unmuted
-            event.target.unMute();
-            event.target.playVideo();
-            
-            // Sync initial state after player initializes
-            setIsMuted(event.target.isMuted());
-          },
-          onStateChange: (event: YTEvent) => {
-            // Update muted state if it changes or plays
-            if (window.YT && event.data === window.YT.PlayerState.PLAYING) {
-              setIsMuted(event.target.isMuted());
-            }
-          }
-        }
-      });
+    // On the very first click or touch anywhere on the page, unmute and play.
+    const handleFirstInteraction = () => {
+      if (hasUnmutedRef.current) return;
+      hasUnmutedRef.current = true;
+      sendCommand('unMute');
+      sendCommand('playVideo');
+      setIsMuted(false);
+      window.removeEventListener('click', handleFirstInteraction);
+      window.removeEventListener('touchstart', handleFirstInteraction);
     };
 
-    if (window.YT && window.YT.Player) {
-      initPlayer();
-    } else {
-      // Store previous callback if any, or set ours
-      const previousCallback = window.onYouTubeIframeAPIReady;
-      window.onYouTubeIframeAPIReady = () => {
-        if (previousCallback) previousCallback();
-        initPlayer();
-      };
-    }
-
-    // 3. User interaction handler to start audio if blocked by browser autoplay policy
-    const startAudioOnInteraction = () => {
-      if (playerRef.current && window.YT) {
-        // Only trigger if currently muted or paused
-        if (playerRef.current.isMuted() || playerRef.current.getPlayerState() !== window.YT.PlayerState.PLAYING) {
-          playerRef.current.unMute();
-          playerRef.current.playVideo();
-          setIsMuted(false);
-        }
-      }
-      cleanupListeners();
-    };
-
-    const cleanupListeners = () => {
-      window.removeEventListener('click', startAudioOnInteraction);
-      window.removeEventListener('touchstart', startAudioOnInteraction);
-    };
-
-    window.addEventListener('click', startAudioOnInteraction);
-    window.addEventListener('touchstart', startAudioOnInteraction);
+    window.addEventListener('click', handleFirstInteraction);
+    window.addEventListener('touchstart', handleFirstInteraction);
 
     return () => {
-      cleanupListeners();
+      window.removeEventListener('click', handleFirstInteraction);
+      window.removeEventListener('touchstart', handleFirstInteraction);
     };
   }, []);
 
   const toggleMute = (e: React.MouseEvent) => {
-    // Prevent the global click handler from immediately overriding this action
+    // Stop propagation so the global first-interaction handler
+    // doesn't conflict with this intentional toggle.
     e.stopPropagation();
 
-    if (playerRef.current) {
-      if (isMuted) {
-        playerRef.current.unMute();
-        playerRef.current.playVideo();
-        setIsMuted(false);
-      } else {
-        playerRef.current.mute();
-        setIsMuted(true);
-      }
+    // If this is the first interaction AND it's a manual unmute via the button,
+    // mark first interaction as done so the global handler doesn't fire again.
+    if (!hasUnmutedRef.current) {
+      hasUnmutedRef.current = true;
+      window.removeEventListener('click', () => {});
+    }
+
+    if (isMuted) {
+      sendCommand('unMute');
+      sendCommand('playVideo');
+      setIsMuted(false);
+    } else {
+      sendCommand('mute');
+      setIsMuted(true);
     }
   };
 
   return (
     <>
-      <div style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }}>
+      {/* Hidden YouTube iframe — starts MUTED (mute=1) so browser allows autoplay */}
+      <div style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none' }}>
         <iframe
           ref={iframeRef}
-          width="0"
-          height="0"
-          src="https://www.youtube.com/embed/WTJSt4wP2ME?enablejsapi=1&autoplay=1&start=34"
+          width="1"
+          height="1"
+          src="https://www.youtube.com/embed/WTJSt4wP2ME?enablejsapi=1&autoplay=1&mute=1&start=34"
           frameBorder="0"
           allow="autoplay; encrypted-media"
         ></iframe>
@@ -137,7 +79,7 @@ export default function AudioPlayer() {
         onClick={toggleMute}
         className={styles.audioToggleBtn}
         aria-label={isMuted ? 'Unmute Audio' : 'Mute Audio'}
-        title={isMuted ? 'Unmute background music' : 'Mute background music'}
+        title={isMuted ? 'Click to play background music' : 'Mute background music'}
       >
         {isMuted ? (
           // Volume Off / Muted Icon
