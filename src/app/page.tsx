@@ -49,7 +49,7 @@ export default function LandingPage() {
                     <path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-7.714 2.143L11 21l-2.286-6.857L1 12l7.714-2.143L11 3z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path>
                   </svg>
                 </div>
-                <p>6 QUESTIONS<br />165 POINTS</p>
+                <p>6 QUESTIONS<br />100 POINTS</p>
               </div>
 
               <div className={styles.featureItem}>

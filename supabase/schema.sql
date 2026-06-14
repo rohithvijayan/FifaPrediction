@@ -228,7 +228,7 @@ BEGIN
         pts := max_pts;
       END IF;
 
-    -- Q6: Final Score (exact = 15, correct winner = 7)
+    -- Q6: Final Score (exact = 15, no partial points)
     WHEN 6 THEN
       DECLARE
         u_t1 TEXT := LOWER(TRIM(user_answer->>'team1'));
@@ -241,24 +241,8 @@ BEGIN
         a_s1 INTEGER := (actual_answer->>'team1_score')::INTEGER;
         a_s2 INTEGER := (actual_answer->>'team2_score')::INTEGER;
       BEGIN
-        IF (u_t1 = a_t1 AND u_t2 = a_t2) OR (u_t1 = a_t2 AND u_t2 = a_t1) THEN
-          IF u_t1 = a_t2 THEN
-            -- Swap user scores to match actual order
-            DECLARE
-              temp INTEGER := u_s1;
-            BEGIN
-              u_s1 := u_s2;
-              u_s2 := temp;
-            END;
-          END IF;
-          
-          IF u_s1 = a_s1 AND u_s2 = a_s2 THEN
-            pts := max_pts; -- Exact score
-          ELSIF (u_s1 > u_s2 AND a_s1 > a_s2) OR
-                (u_s1 < u_s2 AND a_s1 < a_s2) OR
-                (u_s1 = u_s2 AND a_s1 = a_s2) THEN
-            pts := max_pts / 2; -- Correct winner/draw direction (15 / 2 = 7)
-          END IF;
+        IF u_t1 = a_t1 AND u_t2 = a_t2 AND u_s1 = a_s1 AND u_s2 = a_s2 THEN
+          pts := max_pts; -- Exact teams in exact order with exact score
         END IF;
       END;
 

@@ -1,4 +1,4 @@
-/* Register Page Styles — mirrors login.module.css */
+/* Register Page Styles */
 .page {
   min-height: 100vh;
   display: flex;
@@ -6,7 +6,7 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
-  padding: 20px;
+  padding: 24px 16px;
 }
 
 .bgGlow {
@@ -30,9 +30,10 @@
   pointer-events: none;
 }
 
+/* Wider container to accommodate two-column layout */
 .container {
   width: 100%;
-  max-width: 420px;
+  max-width: 500px;
   position: relative;
   z-index: 1;
   animation: fadeInUp 0.6s ease-out;
@@ -71,7 +72,7 @@
 .form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
   background: var(--gradient-card);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
@@ -82,8 +83,188 @@
 .inputGroup {
   display: flex;
   flex-direction: column;
+  gap: 6px;
 }
 
+.optional {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* ── Two-column row for district + pincode ─────────────────── */
+.rowGroup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 420px) {
+  .rowGroup {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Phone Row (country selector + phone input) ────────────── */
+.phoneRow {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.phoneInput {
+  flex: 1;
+  min-width: 0;
+}
+
+.phoneHint {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  text-align: right;
+}
+
+/* ── Country Selector ──────────────────────────────────────── */
+.countrySelector {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.countryBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  height: 100%;
+  min-height: 44px;
+  background: var(--bg-surface, rgba(255,255,255,0.05));
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.2s, background 0.2s;
+  font-size: 0.875rem;
+}
+
+.countryBtn:hover {
+  border-color: var(--accent-purple, #8b5cf6);
+  background: rgba(139, 92, 246, 0.08);
+}
+
+.flag {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.dialCode {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 34px;
+}
+
+.chevron {
+  color: var(--text-secondary);
+  transition: transform 0.2s;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+/* ── Dropdown ──────────────────────────────────────────────── */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 100;
+  width: 260px;
+  background: var(--bg-card, #1a1f2e);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  animation: dropdownIn 0.18s ease-out;
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.dropdownSearch {
+  padding: 10px 10px 6px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.dropdownInput {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.dropdownInput::placeholder {
+  color: var(--text-secondary);
+}
+
+.dropdownList {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  max-height: 220px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 0.85rem;
+}
+
+.dropdownItem:hover {
+  background: rgba(139, 92, 246, 0.12);
+}
+
+.dropdownItemActive {
+  background: rgba(139, 92, 246, 0.2);
+  color: var(--accent-purple, #8b5cf6);
+}
+
+.dropdownName {
+  flex: 1;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdownDial {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.dropdownEmpty {
+  padding: 12px 14px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* ── Error Banner ──────────────────────────────────────────── */
 .errorBanner {
   display: flex;
   align-items: center;
@@ -96,6 +277,7 @@
   font-size: 0.85rem;
 }
 
+/* ── Submit Button ─────────────────────────────────────────── */
 .submitBtn {
   margin-top: 4px;
 }
@@ -114,6 +296,7 @@
   to { transform: rotate(360deg); }
 }
 
+/* ── Footer text ───────────────────────────────────────────── */
 .switchText {
   text-align: center;
   margin-top: 24px;

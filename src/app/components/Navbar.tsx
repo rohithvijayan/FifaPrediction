@@ -10,8 +10,8 @@ export default function Navbar() {
           <Image src="/images/title.png" alt="Panthduniya Logo" width={150} height={40} className={styles.navLogo} />
         </Link>
         <div className={styles.navLinks}>
-          <Link href="/fixtures">മത്സരങ്ങൾ</Link>
-          <Link href="#">നിയമങ്ങൾ</Link>
+          <Link href="/fixtures" className="anek-malayalam">മത്സരങ്ങൾ</Link>
+          <Link href="/rules" className="anek-malayalam">നിയമങ്ങൾ</Link>
         </div>
       </div>
       <div className={styles.navRight}>

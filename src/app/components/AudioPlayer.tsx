@@ -5,11 +5,10 @@ import styles from './AudioPlayer.module.css';
 
 export default function AudioPlayer() {
   // Start as muted=true because browsers ALWAYS block unmuted autoplay.
-  // We start the video silently (mute=1 in URL), and on the first user
-  // interaction anywhere on the page, we unmute and start playing.
+  // On the first user interaction anywhere on the page we unmute + play.
   const [isMuted, setIsMuted] = useState(true);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const hasUnmutedRef = useRef(false); // track if we've already unmuted on first interaction
+  const hasUnmutedRef = useRef(false);
 
   const sendCommand = (func: string) => {
     iframeRef.current?.contentWindow?.postMessage(
@@ -19,36 +18,38 @@ export default function AudioPlayer() {
   };
 
   useEffect(() => {
-    // On the very first click or touch anywhere on the page, unmute and play.
+    // Unmute + play on the very first user interaction (click OR touch).
+    // We use 'touchend' instead of 'touchstart' so scroll gestures don't
+    // accidentally trigger it; 'touchend' still counts as a user gesture
+    // for the browser's autoplay policy.
     const handleFirstInteraction = () => {
       if (hasUnmutedRef.current) return;
       hasUnmutedRef.current = true;
+      // Call synchronously inside the event handler so the browser
+      // treats the postMessage as originating from a user gesture.
       sendCommand('unMute');
       sendCommand('playVideo');
       setIsMuted(false);
       window.removeEventListener('click', handleFirstInteraction);
-      window.removeEventListener('touchstart', handleFirstInteraction);
+      window.removeEventListener('touchend', handleFirstInteraction);
     };
 
     window.addEventListener('click', handleFirstInteraction);
-    window.addEventListener('touchstart', handleFirstInteraction);
+    // Use { passive: true } for better scroll performance on mobile.
+    window.addEventListener('touchend', handleFirstInteraction, { passive: true });
 
     return () => {
       window.removeEventListener('click', handleFirstInteraction);
-      window.removeEventListener('touchstart', handleFirstInteraction);
+      window.removeEventListener('touchend', handleFirstInteraction);
     };
   }, []);
 
-  const toggleMute = (e: React.MouseEvent) => {
-    // Stop propagation so the global first-interaction handler
-    // doesn't conflict with this intentional toggle.
-    e.stopPropagation();
-
-    // If this is the first interaction AND it's a manual unmute via the button,
-    // mark first interaction as done so the global handler doesn't fire again.
+  const toggleMute = () => {
+    // Mark first interaction done so the global handler doesn't double-fire.
     if (!hasUnmutedRef.current) {
       hasUnmutedRef.current = true;
       window.removeEventListener('click', () => {});
+      window.removeEventListener('touchend', () => {});
     }
 
     if (isMuted) {
@@ -59,6 +60,14 @@ export default function AudioPlayer() {
       sendCommand('mute');
       setIsMuted(true);
     }
+  };
+
+  // Shared handler for both mouse and touch on the button.
+  // stopPropagation is intentionally removed so the global listener
+  // can also fire (it is idempotent via hasUnmutedRef).
+  const handleButtonTouch = (e: React.TouchEvent) => {
+    e.preventDefault(); // prevent the subsequent 300ms-delayed click on mobile
+    toggleMute();
   };
 
   return (
@@ -77,6 +86,7 @@ export default function AudioPlayer() {
 
       <button
         onClick={toggleMute}
+        onTouchEnd={handleButtonTouch}
         className={styles.audioToggleBtn}
         aria-label={isMuted ? 'Unmute Audio' : 'Mute Audio'}
         title={isMuted ? 'Click to play background music' : 'Mute background music'}

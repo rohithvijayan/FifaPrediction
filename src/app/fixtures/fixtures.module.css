@@ -14,6 +14,7 @@
   width: 100%;
 }
 
+/* ── Hero ──────────────────────────────────────────────────── */
 .heroSection {
   position: relative;
   width: 100%;
@@ -23,7 +24,6 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  margin-top: 0;
 }
 
 .heroImage {
@@ -34,10 +34,7 @@
 
 .heroOverlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: linear-gradient(to bottom, rgba(10, 14, 26, 0.4), #0a0e1a);
   z-index: 2;
 }
@@ -68,6 +65,7 @@
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
+/* ── Search ────────────────────────────────────────────────── */
 .headerControls {
   display: flex;
   justify-content: center;
@@ -96,6 +94,7 @@
   box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
 }
 
+/* ── Fixtures list ─────────────────────────────────────────── */
 .fixturesContainer {
   display: flex;
   flex-direction: column;
@@ -114,72 +113,118 @@
   color: #ffffff;
   margin: 0;
   padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .matchesList {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.625rem;
 }
 
+/* ── Match card ────────────────────────────────────────────── */
 .matchRow {
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 0.5rem;
-  padding: 1.25rem 1rem;
-  display: flex;
-  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem 0.75rem;
+  display: grid;
+  /* three columns: left-team | centre | right-team */
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-rows: auto auto;
+  /* meta row spans all 3 columns */
+  column-gap: 0.75rem;
+  row-gap: 0.5rem;
   align-items: center;
-  gap: 0.75rem;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, border-color 0.2s;
 }
 
 .matchRow:hover {
   background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(0, 212, 170, 0.18);
 }
 
-.matchTeams {
+/* ── Team blocks ───────────────────────────────────────────── */
+.teamBlock {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
-  gap: 1rem;
+  gap: 0.5rem;
+  /* left team: flag on left, name on right → left-aligned */
+  justify-content: flex-end;
 }
 
-.teamLeft {
-  flex: 1;
+/* Right team mirrors: name left, flag right */
+.teamBlockRight {
+  justify-content: flex-start;
+}
+
+.teamFlag {
+  font-size: 1.75rem;
+  line-height: 1;
+  flex-shrink: 0;
+  /* subtle drop shadow for flag emoji pop */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+.teamName {
+  font-weight: 700;
+  font-size: 0.975rem;
+  color: #ffffff;
   text-align: right;
-  font-weight: 600;
-  font-size: 1.125rem;
-  color: #ffffff;
+  line-height: 1.2;
 }
 
-.teamRight {
-  flex: 1;
+.teamBlockRight .teamName {
   text-align: left;
-  font-weight: 600;
-  font-size: 1.125rem;
-  color: #ffffff;
 }
 
-.matchTimeScore {
+/* ── Centre column ─────────────────────────────────────────── */
+.matchCentre {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 0 1rem;
+  gap: 4px;
 }
 
 .timeBadge {
-  background-color: rgba(0, 212, 170, 0.1);
+  background-color: rgba(0, 212, 170, 0.12);
   color: #00d4aa;
-  padding: 0.25rem 0.75rem;
+  padding: 0.2rem 0.6rem;
   border-radius: 1rem;
-  font-size: 0.875rem;
+  font-size: 0.78rem;
   font-weight: 700;
   white-space: nowrap;
+  letter-spacing: 0.02em;
 }
 
+.vsLabel {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.25);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ── Meta row ──────────────────────────────────────────────── */
+.matchMeta {
+  grid-column: 1 / -1; /* span all three columns */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.metaDot {
+  color: #4b5563;
+}
+
+/* ── TBD rows ──────────────────────────────────────────────── */
 .tbdFixture {
+  grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -187,26 +232,12 @@
 }
 
 .tbdText {
-  font-size: 1.125rem;
+  font-size: 1.025rem;
   font-weight: 600;
-  color: #ffffff;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.matchMeta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.metaDot {
-  color: #4b5563;
-}
-
+/* ── No results ────────────────────────────────────────────── */
 .noResults {
   text-align: center;
   color: #9ca3af;
@@ -214,14 +245,23 @@
   font-size: 1.125rem;
 }
 
-@media (max-width: 640px) {
-  .teamLeft, .teamRight {
-    font-size: 1rem;
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .matchRow {
+    grid-template-columns: 1fr auto 1fr;
+    padding: 0.875rem 0.75rem 0.625rem;
   }
-  .matchTeams {
-    gap: 0.5rem;
+
+  .teamFlag {
+    font-size: 1.4rem;
   }
-  .matchTimeScore {
-    padding: 0 0.5rem;
+
+  .teamName {
+    font-size: 0.82rem;
+  }
+
+  .timeBadge {
+    font-size: 0.72rem;
+    padding: 0.18rem 0.5rem;
   }
 }

@@ -6,6 +6,60 @@ import Navbar from '../components/Navbar';
 import styles from './fixtures.module.css';
 import fixturesData from '../../../fixtures.json';
 
+// ── Flag emoji map for all 48 WC 2026 teams ──────────────────────────────────
+const TEAM_FLAGS: Record<string, string> = {
+  'Mexico':                   '🇲🇽',
+  'South Africa':              '🇿🇦',
+  'South Korea':               '🇰🇷',
+  'Czechia':                   '🇨🇿',
+  'Canada':                    '🇨🇦',
+  'Bosnia and Herzegovina':    '🇧🇦',
+  'USA':                       '🇺🇸',
+  'Paraguay':                  '🇵🇾',
+  'Qatar':                     '🇶🇦',
+  'Switzerland':               '🇨🇭',
+  'Brazil':                    '🇧🇷',
+  'Morocco':                   '🇲🇦',
+  'Haiti':                     '🇭🇹',
+  'Scotland':                  '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+  'Australia':                 '🇦🇺',
+  'Turkey':                    '🇹🇷',
+  'Germany':                   '🇩🇪',
+  'Curaçao':                   '🇨🇼',
+  'Netherlands':               '🇳🇱',
+  'Japan':                     '🇯🇵',
+  'Ivory Coast':               '🇨🇮',
+  'Ecuador':                   '🇪🇨',
+  'Sweden':                    '🇸🇪',
+  'Tunisia':                   '🇹🇳',
+  'Spain':                     '🇪🇸',
+  'Cape Verde':                '🇨🇻',
+  'Belgium':                   '🇧🇪',
+  'Egypt':                     '🇪🇬',
+  'Saudi Arabia':              '🇸🇦',
+  'Uruguay':                   '🇺🇾',
+  'Iran':                      '🇮🇷',
+  'New Zealand':               '🇳🇿',
+  'France':                    '🇫🇷',
+  'Senegal':                   '🇸🇳',
+  'Iraq':                      '🇮🇶',
+  'Norway':                    '🇳🇴',
+  'Argentina':                 '🇦🇷',
+  'Algeria':                   '🇩🇿',
+  'Austria':                   '🇦🇹',
+  'Jordan':                    '🇯🇴',
+  'Portugal':                  '🇵🇹',
+  'DR Congo':                  '🇨🇩',
+  'England':                   '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+  'Croatia':                   '🇭🇷',
+  'Ghana':                     '🇬🇭',
+  'Panama':                    '🇵🇦',
+  'Uzbekistan':                '🇺🇿',
+  'Colombia':                  '🇨🇴',
+};
+
+const getFlag = (team: string) => TEAM_FLAGS[team.trim()] ?? '🏳️';
+
 export default function FixturesPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -28,7 +82,7 @@ export default function FixturesPage() {
 
   // Format date function
   const formatDate = (dateStr: string) => {
-    if (dateStr.includes(' - ')) return dateStr; // For ranges like "June 29 - July 4, 2026"
+    if (dateStr.includes(' - ')) return dateStr;
     try {
       const date = new Date(dateStr);
       return date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -75,28 +129,40 @@ export default function FixturesPage() {
 
                   return (
                     <div key={index} className={styles.matchRow}>
-                      <div className={styles.matchTeams}>
-                        {hasTeams ? (
-                          <>
-                            <div className={styles.teamLeft}>{teams[0]}</div>
-                            <div className={styles.matchTimeScore}>
-                              <span className={styles.timeBadge}>{match.time}</span>
-                            </div>
-                            <div className={styles.teamRight}>{teams[1]}</div>
-                          </>
-                        ) : (
-                          <div className={styles.tbdFixture}>
-                            <span className={styles.tbdText}>{match.fixture}</span>
-                            <span className={styles.timeBadge}>{match.time}</span>
+                      {hasTeams ? (
+                        <>
+                          {/* Left team */}
+                          <div className={styles.teamBlock}>
+                            <span className={styles.teamFlag}>{getFlag(teams[0])}</span>
+                            <span className={styles.teamName}>{teams[0]}</span>
                           </div>
-                        )}
-                      </div>
+
+                          {/* Centre: time + VS */}
+                          <div className={styles.matchCentre}>
+                            <span className={styles.timeBadge}>{match.time}</span>
+                            <span className={styles.vsLabel}>VS</span>
+                          </div>
+
+                          {/* Right team */}
+                          <div className={`${styles.teamBlock} ${styles.teamBlockRight}`}>
+                            <span className={styles.teamName}>{teams[1]}</span>
+                            <span className={styles.teamFlag}>{getFlag(teams[1])}</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className={styles.tbdFixture}>
+                          <span className={styles.tbdText}>{match.fixture}</span>
+                          <span className={styles.timeBadge}>{match.time}</span>
+                        </div>
+                      )}
+
+                      {/* Meta row */}
                       <div className={styles.matchMeta}>
                         <span>{match.stage ? match.stage : `Match ${match.matchNumber}`}</span>
                         {match.venue && (
                           <>
                             <span className={styles.metaDot}>•</span>
-                            <span>{match.venue}</span>
+                            <span>📍 {match.venue}</span>
                           </>
                         )}
                       </div>
