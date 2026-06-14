@@ -3,67 +3,135 @@
 import { useState, useRef, useEffect } from 'react';
 import styles from './AudioPlayer.module.css';
 
+// Declare YT for TypeScript compiler and avoid using 'any'
+interface YTPlayer {
+  playVideo: () => void;
+  mute: () => void;
+  unMute: () => void;
+  isMuted: () => boolean;
+  getPlayerState: () => number;
+}
+
+interface YTEvent {
+  target: YTPlayer;
+  data?: number;
+}
+
+declare global {
+  interface Window {
+    onYouTubeIframeAPIReady?: () => void;
+    YT?: {
+      Player: new (element: HTMLIFrameElement | string, options: object) => YTPlayer;
+      PlayerState: {
+        PLAYING: number;
+      };
+    };
+  }
+}
+
 export default function AudioPlayer() {
   const [isMuted, setIsMuted] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const playerRef = useRef<YTPlayer | null>(null);
 
-  // Auto-play workaround: Modern browsers block autoplay with sound.
-  // We listen for the first user interaction (click or touch) on the page to start the music.
   useEffect(() => {
-    const startAudio = () => {
-      if (iframeRef.current && iframeRef.current.contentWindow) {
-        // Send unMute and playVideo commands to the YouTube player
-        iframeRef.current.contentWindow.postMessage(
-          JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*'
-        );
-        iframeRef.current.contentWindow.postMessage(
-          JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*'
-        );
-      }
-      // Remove listeners so this only triggers once
-      window.removeEventListener('click', startAudio);
-      window.removeEventListener('touchstart', startAudio);
+    // 1. Load YouTube Iframe Player API script
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+    }
+
+    // 2. Define the callback for when the API is ready
+    const initPlayer = () => {
+      if (!iframeRef.current || !window.YT) return;
+      
+      playerRef.current = new window.YT.Player(iframeRef.current, {
+        events: {
+          onReady: (event: YTEvent) => {
+            // Attempt to autoplay unmuted
+            event.target.unMute();
+            event.target.playVideo();
+            
+            // Sync initial state after player initializes
+            setIsMuted(event.target.isMuted());
+          },
+          onStateChange: (event: YTEvent) => {
+            // Update muted state if it changes or plays
+            if (window.YT && event.data === window.YT.PlayerState.PLAYING) {
+              setIsMuted(event.target.isMuted());
+            }
+          }
+        }
+      });
     };
 
-    window.addEventListener('click', startAudio);
-    window.addEventListener('touchstart', startAudio);
+    if (window.YT && window.YT.Player) {
+      initPlayer();
+    } else {
+      // Store previous callback if any, or set ours
+      const previousCallback = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        if (previousCallback) previousCallback();
+        initPlayer();
+      };
+    }
+
+    // 3. User interaction handler to start audio if blocked by browser autoplay policy
+    const startAudioOnInteraction = () => {
+      if (playerRef.current && window.YT) {
+        // Only trigger if currently muted or paused
+        if (playerRef.current.isMuted() || playerRef.current.getPlayerState() !== window.YT.PlayerState.PLAYING) {
+          playerRef.current.unMute();
+          playerRef.current.playVideo();
+          setIsMuted(false);
+        }
+      }
+      cleanupListeners();
+    };
+
+    const cleanupListeners = () => {
+      window.removeEventListener('click', startAudioOnInteraction);
+      window.removeEventListener('touchstart', startAudioOnInteraction);
+    };
+
+    window.addEventListener('click', startAudioOnInteraction);
+    window.addEventListener('touchstart', startAudioOnInteraction);
 
     return () => {
-      window.removeEventListener('click', startAudio);
-      window.removeEventListener('touchstart', startAudio);
+      cleanupListeners();
     };
   }, []);
 
-  const toggleMute = () => {
-    if (iframeRef.current && iframeRef.current.contentWindow) {
+  const toggleMute = (e: React.MouseEvent) => {
+    // Prevent the global click handler from immediately overriding this action
+    e.stopPropagation();
+
+    if (playerRef.current) {
       if (isMuted) {
-        // Unmute + ensure playing
-        iframeRef.current.contentWindow.postMessage(
-          JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*'
-        );
-        iframeRef.current.contentWindow.postMessage(
-          JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*'
-        );
+        playerRef.current.unMute();
+        playerRef.current.playVideo();
+        setIsMuted(false);
       } else {
-        iframeRef.current.contentWindow.postMessage(
-          JSON.stringify({ event: 'command', func: 'mute', args: [] }), '*'
-        );
+        playerRef.current.mute();
+        setIsMuted(true);
       }
     }
-    setIsMuted(prev => !prev);
   };
 
   return (
     <>
-      <iframe
-        ref={iframeRef}
-        width="0"
-        height="0"
-        src="https://www.youtube.com/embed/WTJSt4wP2ME?enablejsapi=1&autoplay=1&start=34"
-        frameBorder="0"
-        allow="autoplay; encrypted-media"
-        style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
-      ></iframe>
+      <div style={{ position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none' }}>
+        <iframe
+          ref={iframeRef}
+          width="0"
+          height="0"
+          src="https://www.youtube.com/embed/WTJSt4wP2ME?enablejsapi=1&autoplay=1&start=34"
+          frameBorder="0"
+          allow="autoplay; encrypted-media"
+        ></iframe>
+      </div>
 
       <button
         onClick={toggleMute}
