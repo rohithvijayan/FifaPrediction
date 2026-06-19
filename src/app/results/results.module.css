@@ -28,7 +28,7 @@
 
 .heroImage {
   object-fit: cover;
-  object-position: center 30%;
+  object-position: center 5%;
   z-index: 1;
 }
 
@@ -333,6 +333,7 @@
 .pos1 td {
   border-left: 3px solid #00d4aa;
 }
+
 .pos2 td {
   border-left: 3px solid rgba(0, 212, 170, 0.5);
 }
@@ -364,7 +365,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Responsive overrides ───────────────────────────────────── */
@@ -372,18 +375,23 @@
   .heroTitle {
     font-size: 1.85rem;
   }
+
   .heroSubtitle {
     font-size: 0.9rem;
   }
+
   .main {
     padding: 1.5rem 1rem 3rem;
   }
+
   .groupCard {
     padding: 1rem;
   }
+
   .standingsTable {
     font-size: 0.8rem;
   }
+
   .teamNameText {
     max-width: 90px;
   }
