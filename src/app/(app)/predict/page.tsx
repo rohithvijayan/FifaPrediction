@@ -104,7 +104,7 @@ export default function PredictPage() {
   const [predictions, setPredictions] = useState<Record<number, Prediction>>({});
   const [actualResults, setActualResults] = useState<Record<number, ActualResult>>({});
   const [formValues, setFormValues] = useState<Record<number, Record<string, string>>>({});
-  
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -238,6 +238,37 @@ export default function PredictPage() {
     }
     loadData();
   }, [user]);
+
+  // Auto-fill Q6 (Final Match Score) team1/team2 from Q1 (Winner) and Q2 (Runner-Up)
+  useEffect(() => {
+    if (questions.length === 0) return;
+
+    const q1 = questions.find(q => q.question_number === 1);
+    const q2 = questions.find(q => q.question_number === 2);
+    const q6 = questions.find(q => q.question_number === 6);
+
+    if (!q1 || !q2 || !q6) return;
+
+    // Don't overwrite if Q6 is locked or settled
+    if (new Date(q6.lock_date) <= new Date() || q6.is_settled) return;
+
+    const winnerTeam = formValues[q1.id]?.team ?? '';
+    const runnerUpTeam = formValues[q2.id]?.team ?? '';
+    const currentQ6 = formValues[q6.id] ?? {};
+
+    // Guard: only update when a value actually differs to prevent infinite loops
+    if (currentQ6.team1 === winnerTeam && currentQ6.team2 === runnerUpTeam) return;
+
+    setFormValues(prev => ({
+      ...prev,
+      [q6.id]: {
+        ...prev[q6.id],
+        team1: winnerTeam,
+        team2: runnerUpTeam,
+      },
+    }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questions, formValues]);
 
   const getTeamFlag = (teamName: string) => {
     const team = teams.find(t => t.name === teamName);
@@ -487,8 +518,8 @@ export default function PredictPage() {
         await savePredictionsToDb(targetUid);
         setAlert({
           type: 'success',
-          message: isLoginMode 
-            ? '🎉 Logged in and predictions saved successfully!' 
+          message: isLoginMode
+            ? '🎉 Logged in and predictions saved successfully!'
             : '🎉 Account created and predictions saved successfully!'
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -526,14 +557,17 @@ export default function PredictPage() {
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Predict & Win</h1>
-        <p className={styles.subtitle}>
-          Make your tournament predictions before deadlines to climb the leaderboard!
-        </p>
+    <>
+      {/* Full-bleed Hero */}
+      <div className={styles.predictHero}>
+        <div className={styles.predictHeroCard}>
+          <p className={styles.predictHeroEyebrow}>FIFA World Cup 2026™</p>
+          <h1 className={styles.predictHeroTitle}>Predict &amp; Win</h1>
+          <p className={styles.predictHeroSubtitle}>Make your picks before the deadlines!</p>
+        </div>
       </div>
 
+      <div className={styles.container}>
       {alert && (
         <div className={`${styles.alert} ${alert.type === 'success' ? styles.alertSuccess : styles.alertError}`}>
           {alert.type === 'success' ? '✅' : '⚠️'} {alert.message}
@@ -551,8 +585,8 @@ export default function PredictPage() {
             const value = formValues[q.id] || {};
 
             return (
-              <div 
-                key={q.id} 
+              <div
+                key={q.id}
                 className={`${styles.card} ${isLocked ? styles.cardLocked : ''}`}
                 style={{ zIndex: questions.length - index }}
               >
@@ -807,9 +841,8 @@ export default function PredictPage() {
                                   key={c.code}
                                   role="option"
                                   aria-selected={c.code === selectedCountry.code}
-                                  className={`${styles.dropdownItem} ${
-                                    c.code === selectedCountry.code ? styles.dropdownItemActive : ''
-                                  }`}
+                                  className={`${styles.dropdownItem} ${c.code === selectedCountry.code ? styles.dropdownItemActive : ''
+                                    }`}
                                   onClick={() => handleCountrySelect(c)}
                                 >
                                   <span>
@@ -838,7 +871,6 @@ export default function PredictPage() {
                     />
                   </div>
                   <p className={styles.phoneHint}>
-                    National number only. Matches pattern for {selectedCountry.name}.
                   </p>
                 </div>
 
@@ -908,37 +940,7 @@ export default function PredictPage() {
               </>
             )}
 
-            <div className={styles.switchText}>
-              {isLoginMode ? (
-                <>
-                  Need to submit details?{' '}
-                  <button
-                    type="button"
-                    className={styles.switchLink}
-                    onClick={() => {
-                      setIsLoginMode(false);
-                      setAuthError('');
-                    }}
-                  >
-                    Click here
-                  </button>
-                </>
-              ) : (
-                <>
-                  Already have an account?{' '}
-                  <button
-                    type="button"
-                    className={styles.switchLink}
-                    onClick={() => {
-                      setIsLoginMode(true);
-                      setAuthError('');
-                    }}
-                  >
-                    Sign in here
-                  </button>
-                </>
-              )}
-            </div>
+
 
             <div className={styles.footerActions} style={{ marginTop: '24px' }}>
               <button
@@ -967,5 +969,6 @@ export default function PredictPage() {
         )}
       </form>
     </div>
+    </>
   );
 }

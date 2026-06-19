@@ -188,10 +188,11 @@
 
 .teamSide {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: 100%;
+  overflow: hidden;
 }
 
 .teamSideLabel {
@@ -209,6 +210,7 @@
   align-items: center;
   gap: 16px;
   font-family: var(--font-heading);
+  flex-shrink: 0;
 }
 
 .scoreInputContainer {
@@ -605,7 +607,103 @@
   transition: opacity 0.2s;
 }
 
+
 .switchLink:hover {
   opacity: 0.8;
 }
 
+/* ── Predict Hero Section ── */
+.predictHero {
+  /* Full-bleed breakout from mainContent's 20px padding */
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  margin-left: -50vw;
+  margin-top: -20px;
+  margin-bottom: 32px;
+
+  /* Background */
+  background-image:
+    linear-gradient(to bottom, transparent 50%, #0a0e1a 100%),
+    url('/images/rulesBG1.jpg');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+
+  /* Layout */
+  height: 32vh;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .predictHero {
+    height: 38vh;
+    min-height: 260px;
+  }
+}
+
+.predictHeroCard {
+  position: relative;
+  z-index: 2;
+  background: rgba(10, 14, 26, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.75rem 2.5rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  animation: heroFadeIn 0.7s ease-out;
+}
+
+@keyframes heroFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.predictHeroEyebrow {
+  color: #ff1b91;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.25em;
+  text-shadow: 0 0 10px rgba(255, 27, 145, 0.6);
+}
+
+.predictHeroTitle {
+  font-size: 2.25rem;
+  font-weight: 900;
+  margin: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.predictHeroSubtitle {
+  color: #00d4aa;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 767px) {
+  .predictHeroCard {
+    background: rgba(10, 14, 26, 0.2);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    padding: 1.25rem 1.5rem;
+  }
+  .predictHeroTitle {
+    font-size: 1.75rem;
+  }
+}

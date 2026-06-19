@@ -56,7 +56,7 @@ export default function RulesPage() {
       <section className={styles.ruleSection}>
         <div className={styles.ruleHeader}>
           <span className={styles.ruleNumber}>5</span>
-          <h2>ഗോൾഡൻ গ്ലൗ <span className={styles.pointsBadge}>(Max 10 Pts)</span></h2>
+          <h2>ഗോൾഡൻ ഗ്ലൗവ്  <span className={styles.pointsBadge}>(Max 10 Pts)</span></h2>
         </div>
         <p className={styles.ruleText}>മികച്ച ഗോൾകീപ്പറെ കൃത്യമായി പ്രവചിച്ചാൽ <strong>10 പോയിന്റ്</strong>. തെറ്റിയാൽ 0.</p>
       </section>
@@ -118,7 +118,6 @@ export default function RulesPage() {
 
         {/* Hero Section */}
         <div className={`${styles.hero} ${styles.appHero}`}>
-          <div className={styles.heroOverlay}></div>
           <div className={styles.heroCard}>
             <p className={styles.heroWorldCupText}>പന്ത്ദുനിയ</p>
             <h1 className={styles.heroTitle}>പോയിന്റ് നിയമങ്ങൾ</h1>
@@ -155,9 +154,7 @@ export default function RulesPage() {
 
       {/* Hero Section */}
       <div className={`${styles.hero} ${styles.guestHero}`}>
-        <div className={styles.heroOverlay}></div>
         <div className={styles.heroCard}>
-          <p className={styles.heroWorldCupText}>പന്ത്ദുനിയ</p>
           <h1 className={styles.heroTitle}>പോയിന്റ് നിയമങ്ങൾ</h1>
           <p className={styles.heroSubtitle}>FIFA WORLD CUP 2026™ PREDICTION RULES</p>
         </div>
