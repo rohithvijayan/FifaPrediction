@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 import Navbar from '../components/Navbar';
 import styles from './rules.module.css';
 import layoutStyles from '../(app)/layout.module.css';
@@ -9,6 +10,7 @@ import Image from 'next/image';
 
 export default function RulesPage() {
   const { user, signOut } = useAuth();
+  const router = useRouter();
 
   const navItems = [
     { href: '/predict', label: 'Predict', icon: '⚽' },
@@ -95,9 +97,17 @@ export default function RulesPage() {
       <div className={layoutStyles.appShell}>
         {/* Top Header */}
         <header className={layoutStyles.topHeader}>
-          <Link href="/predict" className={layoutStyles.logo}>
-            <Image src="/images/title.png" alt="Panthduniya Logo" width={120} height={32} className={layoutStyles.logoImage} />
-          </Link>
+          <div className={layoutStyles.headerLeftContainer}>
+            <button onClick={() => router.back()} className={layoutStyles.backBtn} aria-label="Go back">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+            </button>
+            <Link href="/predict" className={layoutStyles.logo}>
+              <Image src="/images/title.png" alt="Panthduniya Logo" width={120} height={32} className={layoutStyles.logoImage} />
+            </Link>
+          </div>
           <div className={layoutStyles.headerRight}>
             <span className={layoutStyles.userName}>{user.displayName}</span>
             <button onClick={signOut} className={layoutStyles.signOutBtn} title="Sign Out">

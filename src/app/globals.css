@@ -155,14 +155,53 @@ img {
 
 .text-malayalam {
   font-family: var(--font-malayalam);
+  font-weight: 600;
+}
+
+.text-malayalam h1,
+h1.text-malayalam {
+  font-family: "Anek Malayalam", sans-serif;
+  font-weight: 800 !important;
+}
+
+.text-malayalam h2,
+h2.text-malayalam,
+.text-malayalam h3,
+h3.text-malayalam,
+.text-malayalam h4,
+h4.text-malayalam,
+.text-malayalam strong,
+strong.text-malayalam,
+.text-malayalam b,
+b.text-malayalam {
+  font-weight: 800;
 }
 
 .anek-malayalam {
   font-family: "Anek Malayalam", sans-serif;
   font-optical-sizing: auto;
-  font-weight: 800;
+  font-weight: 600;
   font-style: normal;
   font-variation-settings: "wdth" 100;
+}
+
+.anek-malayalam h1,
+h1.anek-malayalam {
+  font-family: "Anek Malayalam", sans-serif;
+  font-weight: 800 !important;
+}
+
+.anek-malayalam h2,
+h2.anek-malayalam,
+.anek-malayalam h3,
+h3.anek-malayalam,
+.anek-malayalam h4,
+h4.anek-malayalam,
+.anek-malayalam strong,
+strong.anek-malayalam,
+.anek-malayalam b,
+b.anek-malayalam {
+  font-weight: 800;
 }
 
 .text-gradient-mint {

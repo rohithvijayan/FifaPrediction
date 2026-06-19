@@ -12,11 +12,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  const isPredictPage = pathname === '/predict';
+
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !isPredictPage) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, isPredictPage]);
 
   if (loading) {
     return (
@@ -27,26 +29,40 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) return null;
+  if (!user && !isPredictPage) return null;
 
   const navItems = [
     { href: '/predict', label: 'Predict', icon: '⚽' },
     { href: '/rules', label: 'Rules', icon: '📜' },
-    { href: '/profile', label: 'Profile', icon: '👤' },
+    ...(user ? [{ href: '/profile', label: 'Profile', icon: '👤' }] : []),
   ];
 
   return (
     <div className={styles.appShell}>
       {/* Top Header */}
       <header className={styles.topHeader}>
-        <Link href="/predict" className={styles.logo}>
-          <Image src="/images/title.png" alt="Panthduniya Logo" width={120} height={32} className={styles.logoImage} />
-        </Link>
+        <div className={styles.headerLeftContainer}>
+          {pathname !== '/' && (
+            <button onClick={() => router.back()} className={styles.backBtn} aria-label="Go back">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+            </button>
+          )}
+          <Link href="/predict" className={styles.logo}>
+            <Image src="/images/title.png" alt="Panthduniya Logo" width={120} height={32} className={styles.logoImage} />
+          </Link>
+        </div>
         <div className={styles.headerRight}>
-          <span className={styles.userName}>{user.displayName}</span>
-          <button onClick={signOut} className={styles.signOutBtn} title="Sign Out">
-            ↗
-          </button>
+          {user && (
+            <>
+              <span className={styles.userName}>{user.displayName}</span>
+              <button onClick={signOut} className={styles.signOutBtn} title="Sign Out">
+                ↗
+              </button>
+            </>
+          )}
         </div>
       </header>
 

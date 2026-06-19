@@ -25,7 +25,13 @@ export default function LandingPage() {
             {/* Overlay Content */}
             <div className={styles.heroOverlayContent}>
               <Image src="/images/title.png" alt="പന്ത് ദുനിയ" width={800} height={300} className={styles.heroLogo} priority />
-              <p className={styles.subTitle}>A DYFI KERALA INITIATIVE</p>
+              <p className={styles.subTitle}>A Yuvadhara Online Initiative</p>
+              <Link href="/predict" className={styles.startBtn} style={{ marginTop: '1.5rem', maxWidth: '320px' }}>
+                <svg fill="currentColor" viewBox="0 0 20 20">
+                  <path clipRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" fillRule="evenodd"></path>
+                </svg>
+                START PREDICTING
+              </Link>
             </div>
           </div>
 
@@ -74,19 +80,6 @@ export default function LandingPage() {
             <p className={styles.description}>
               Predict match winners, earn points<br />and compete with football fans across the globe!
             </p>
-
-            {/* Primary Actions */}
-            <div className={styles.actions}>
-              <Link href="/register" className={styles.startBtn}>
-                <svg fill="currentColor" viewBox="0 0 20 20">
-                  <path clipRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" fillRule="evenodd"></path>
-                </svg>
-                START PREDICTING
-              </Link>
-              <Link href="/login" className={styles.loginActionBtn}>
-                LOG IN
-              </Link>
-            </div>
 
             <div className={styles.secondaryInfo}>
               <p className={styles.infoTitle}>FIFA World Cup 2026™</p>

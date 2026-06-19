@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Routes that require authentication
-const protectedRoutes = ['/predict', '/profile', '/admin'];
+const protectedRoutes = ['/profile', '/admin'];
 // Routes that should redirect to predict page if already logged in
 const authRoutes = ['/login', '/register'];
 

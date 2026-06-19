@@ -1,11 +1,47 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import SearchSelect from '@/app/components/SearchSelect';
 import { Question, Team, Player, Prediction, ActualResult } from '@/lib/types';
 import styles from './predict.module.css';
+
+const COUNTRIES = [
+  { code: 'IN', name: 'India', dial: '+91', digits: 10 },
+  { code: 'US', name: 'United States', dial: '+1', digits: 10 },
+  { code: 'GB', name: 'United Kingdom', dial: '+44', digits: 10 },
+  { code: 'AU', name: 'Australia', dial: '+61', digits: 9 },
+  { code: 'CA', name: 'Canada', dial: '+1', digits: 10 },
+  { code: 'AE', name: 'UAE', dial: '+971', digits: 9 },
+  { code: 'SA', name: 'Saudi Arabia', dial: '+966', digits: 9 },
+  { code: 'SG', name: 'Singapore', dial: '+65', digits: 8 },
+  { code: 'MY', name: 'Malaysia', dial: '+60', digits: 10 },
+  { code: 'PK', name: 'Pakistan', dial: '+92', digits: 10 },
+  { code: 'BD', name: 'Bangladesh', dial: '+880', digits: 10 },
+  { code: 'LK', name: 'Sri Lanka', dial: '+94', digits: 9 },
+  { code: 'NP', name: 'Nepal', dial: '+977', digits: 10 },
+  { code: 'DE', name: 'Germany', dial: '+49', digits: 11 },
+  { code: 'FR', name: 'France', dial: '+33', digits: 9 },
+  { code: 'IT', name: 'Italy', dial: '+39', digits: 10 },
+  { code: 'ES', name: 'Spain', dial: '+34', digits: 9 },
+  { code: 'BR', name: 'Brazil', dial: '+55', digits: 11 },
+  { code: 'MX', name: 'Mexico', dial: '+52', digits: 10 },
+  { code: 'ZA', name: 'South Africa', dial: '+27', digits: 9 },
+  { code: 'NG', name: 'Nigeria', dial: '+234', digits: 10 },
+  { code: 'JP', name: 'Japan', dial: '+81', digits: 10 },
+  { code: 'KR', name: 'South Korea', dial: '+82', digits: 10 },
+  { code: 'CN', name: 'China', dial: '+86', digits: 11 },
+  { code: 'ID', name: 'Indonesia', dial: '+62', digits: 11 },
+  { code: 'PH', name: 'Philippines', dial: '+63', digits: 10 },
+  { code: 'TH', name: 'Thailand', dial: '+66', digits: 9 },
+  { code: 'VN', name: 'Vietnam', dial: '+84', digits: 9 },
+  { code: 'QA', name: 'Qatar', dial: '+974', digits: 8 },
+  { code: 'KW', name: 'Kuwait', dial: '+965', digits: 8 },
+  { code: 'BH', name: 'Bahrain', dial: '+973', digits: 8 },
+  { code: 'OM', name: 'Oman', dial: '+968', digits: 8 },
+];
 
 // SVG Icons for each question
 const TrophyIcon = () => (
@@ -60,7 +96,8 @@ const ScoreboardIcon = () => (
 );
 
 export default function PredictPage() {
-  const { user } = useAuth();
+  const { user, signUp, signIn } = useAuth();
+  const router = useRouter();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -72,8 +109,28 @@ export default function PredictPage() {
   const [submitting, setSubmitting] = useState(false);
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+  // Guest Registration & Login states
+  const [isLoginMode, setIsLoginMode] = useState(false);
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState('');
+  const [district, setDistrict] = useState('');
+  const [pincode, setPincode] = useState('');
+  const [authError, setAuthError] = useState('');
+
+  // Filtered countries based on search
+  const filteredCountries = useMemo(() => {
+    const q = countrySearch.toLowerCase();
+    return COUNTRIES.filter(
+      (c) => c.name.toLowerCase().includes(q) || c.dial.includes(q) || c.code.toLowerCase().includes(q)
+    );
+  }, [countrySearch]);
+
   useEffect(() => {
-    if (!user) return;
     async function loadData() {
       try {
         setLoading(true);
@@ -233,11 +290,99 @@ export default function PredictPage() {
     }));
   };
 
+  const handlePhoneChange = (val: string) => {
+    const digits = val.replace(/\D/g, '').slice(0, selectedCountry.digits);
+    setPhone(digits);
+  };
+
+  const handleCountrySelect = (c: typeof COUNTRIES[0]) => {
+    setSelectedCountry(c);
+    setDropdownOpen(false);
+    setCountrySearch('');
+    setPhone((prev) => prev.slice(0, c.digits));
+  };
+
+  const savePredictionsToDb = async (uid: string) => {
+    // 1. Fetch existing predictions for this user
+    const { data: existingPreds, error: fetchErr } = await supabase
+      .from('predictions')
+      .select('*')
+      .eq('user_id', uid);
+    if (fetchErr) throw fetchErr;
+
+    const predMap: Record<number, Prediction> = {};
+    existingPreds?.forEach(p => {
+      predMap[p.question_id] = p;
+    });
+
+    // 2. Perform write
+    const promises = Object.entries(formValues).map(async ([qIdStr, val]) => {
+      const qId = parseInt(qIdStr);
+      const q = questions.find(question => question.id === qId);
+      if (!q || isQuestionLocked(q)) return;
+
+      let answer: Record<string, string | number> = {};
+      if (q.question_number <= 3) {
+        answer = { team: val.team };
+      } else if (q.question_number <= 5) {
+        const pName = val.player.startsWith('custom:')
+          ? val.player.replace('custom:', '').trim()
+          : val.player;
+        answer = { player: pName };
+      } else if (q.question_number === 6) {
+        answer = {
+          team1: val.team1,
+          team2: val.team2,
+          team1_score: parseInt(val.team1_score),
+          team2_score: parseInt(val.team2_score)
+        };
+      }
+
+      const existing = predMap[qId];
+      if (existing) {
+        const { error } = await supabase
+          .from('predictions')
+          .update({
+            answer,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('predictions')
+          .insert({
+            user_id: uid,
+            question_id: qId,
+            answer,
+            submitted_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        if (error) throw error;
+      }
+    });
+
+    await Promise.all(promises);
+
+    // Refresh predictions state from database
+    const { data: updatedPreds } = await supabase
+      .from('predictions')
+      .select('*')
+      .eq('user_id', uid);
+
+    const newPredMap: Record<number, Prediction> = {};
+    updatedPreds?.forEach(p => {
+      newPredMap[p.question_id] = p;
+    });
+    setPredictions(newPredMap);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    setAlert(null);
+    setAuthError('');
 
-    // Validation
+    // 1. Validate predictions
     let hasEmpty = false;
     questions.forEach(q => {
       if (isQuestionLocked(q)) return; // Skip locked questions
@@ -260,76 +405,99 @@ export default function PredictPage() {
       return;
     }
 
+    // 2. Validate registration or login inputs if guest
+    if (!user) {
+      if (isLoginMode) {
+        if (!regEmail.trim()) {
+          setAuthError('Email is required.'); return;
+        }
+        if (regPassword.length < 6) {
+          setAuthError('Password must be at least 6 characters.'); return;
+        }
+      } else {
+        if (regName.trim().length < 2) {
+          setAuthError('Display Name must be at least 2 characters.'); return;
+        }
+        if (!regEmail.trim()) {
+          setAuthError('Email is required.'); return;
+        }
+        if (!phone.trim()) {
+          setAuthError('Phone number is required.'); return;
+        }
+        if (phone.length !== selectedCountry.digits) {
+          setAuthError(`Phone number must be exactly ${selectedCountry.digits} digits for ${selectedCountry.name}.`); return;
+        }
+        if (!district.trim()) {
+          setAuthError('District is required.'); return;
+        }
+        if (!pincode.trim()) {
+          setAuthError('Pincode is required.'); return;
+        }
+        if (!/^\d{4,10}$/.test(pincode)) {
+          setAuthError('Pincode must be 4–10 digits.'); return;
+        }
+      }
+    }
+
     try {
       setSubmitting(true);
-      setAlert(null);
+      let targetUid = user?.uid;
 
-      const promises = Object.entries(formValues).map(async ([qIdStr, val]) => {
-        const qId = parseInt(qIdStr);
-        const q = questions.find(question => question.id === qId);
-        if (!q || isQuestionLocked(q)) return; // Don't write if locked
-
-        let answer: Record<string, string | number> = {};
-        if (q.question_number <= 3) {
-          answer = { team: val.team };
-        } else if (q.question_number <= 5) {
-          const pName = val.player.startsWith('custom:')
-            ? val.player.replace('custom:', '').trim()
-            : val.player;
-          answer = { player: pName };
-        } else if (q.question_number === 6) {
-          answer = {
-            team1: val.team1,
-            team2: val.team2,
-            team1_score: parseInt(val.team1_score),
-            team2_score: parseInt(val.team2_score)
-          };
-        }
-
-        const existing = predictions[qId];
-        if (existing) {
-          const { error } = await supabase
-            .from('predictions')
-            .update({
-              answer,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', existing.id);
-          if (error) throw error;
+      if (!user) {
+        if (isLoginMode) {
+          try {
+            await signIn(regEmail.trim(), regPassword);
+          } catch (signInErr) {
+            try {
+              const altPassword = regPassword.trim() + "Ab1!";
+              await signIn(regEmail.trim(), altPassword);
+            } catch {
+              throw signInErr;
+            }
+          }
         } else {
-          const { error } = await supabase
-            .from('predictions')
-            .insert({
-              user_id: user.uid,
-              question_id: qId,
-              answer,
-              submitted_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            });
-          if (error) throw error;
+          const generatedPassword = phone.trim() + "Ab1!";
+          const fullPhone = `${selectedCountry.dial}${phone}`;
+          await signUp(
+            regName.trim(),
+            regEmail.trim(),
+            generatedPassword,
+            fullPhone,
+            district.trim(),
+            pincode
+          );
         }
-      });
 
-      await Promise.all(promises);
+        // Get session
+        const { data: { session } } = await supabase.auth.getSession();
+        targetUid = session?.user?.id;
 
-      // Refresh predictions state from database
-      const { data: updatedPreds } = await supabase
-        .from('predictions')
-        .select('*')
-        .eq('user_id', user.uid);
+        if (!targetUid) {
+          if (!isLoginMode) {
+            setAlert({ type: 'success', message: '🎉 Registration successful! Please verify your email to lock in your predictions.' });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+          } else {
+            throw new Error('Authentication succeeded but session could not be established.');
+          }
+        }
+      }
 
-      const predMap: Record<number, Prediction> = {};
-      updatedPreds?.forEach(p => {
-        predMap[p.question_id] = p;
-      });
-      setPredictions(predMap);
-
-      setAlert({ type: 'success', message: '🎉 Your predictions have been saved successfully!' });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (targetUid) {
+        await savePredictionsToDb(targetUid);
+        setAlert({
+          type: 'success',
+          message: isLoginMode 
+            ? '🎉 Logged in and predictions saved successfully!' 
+            : '🎉 Account created and predictions saved successfully!'
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     } catch (err: unknown) {
       console.error('Submission error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setAlert({ type: 'error', message: `Failed to save predictions: ${errorMessage}` });
+      setAuthError(errorMessage);
+      setAlert({ type: 'error', message: `Submission failed: ${errorMessage}` });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setSubmitting(false);
@@ -549,16 +717,254 @@ export default function PredictPage() {
           })}
         </div>
 
-        {/* Form Action Buttons */}
-        <div className={styles.footerActions}>
-          <button
-            type="submit"
-            className="btn btn-primary btn-lg submitBtn"
-            disabled={submitting || questions.every(isQuestionLocked)}
-          >
-            {submitting ? 'Saving...' : 'Submit Predictions'}
-          </button>
-        </div>
+        {/* If guest, display registration or login form */}
+        {!user && (
+          <div className={styles.authCard}>
+            <h2 className={styles.authCardTitle}>
+              {isLoginMode ? 'Sign In to Save' : 'Submit Details to Lock In Predictions'}
+            </h2>
+            <p className={styles.authCardSubtitle}>
+              {isLoginMode
+                ? 'Enter your credentials to save your predictions to your account.'
+                : 'Provide your details to submit your predictions and join the leaderboard!'}
+            </p>
+
+            {authError && <div className={styles.errorBanner}>⚠️ {authError}</div>}
+
+            {!isLoginMode ? (
+              // Sign Up Mode Fields
+              <>
+                <div className={styles.inputGroup}>
+                  <label htmlFor="regName">Display Name</label>
+                  <input
+                    type="text"
+                    id="regName"
+                    value={regName}
+                    onChange={(e) => setRegName(e.target.value)}
+                    placeholder="Enter your name"
+                    className="input-field"
+                    required
+                    minLength={2}
+                  />
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="regEmail">Email Address</label>
+                  <input
+                    type="email"
+                    id="regEmail"
+                    value={regEmail}
+                    onChange={(e) => setRegEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="input-field"
+                    required
+                  />
+                </div>
+
+                {/* Country selector & phone */}
+                <div className={styles.inputGroup}>
+                  <label htmlFor="phone">Phone Number</label>
+                  <div className={styles.phoneRow}>
+                    <div className={styles.countrySelector}>
+                      <button
+                        type="button"
+                        className={styles.countryBtn}
+                        onClick={() => setDropdownOpen(!dropdownOpen)}
+                        aria-haspopup="listbox"
+                        aria-expanded={dropdownOpen}
+                        aria-label="Select country code"
+                      >
+                        <span className={styles.flag}>
+                          {String.fromCodePoint(
+                            ...selectedCountry.code.split('').map((c) => 0x1f1e6 + c.charCodeAt(0) - 65)
+                          )}
+                        </span>
+                        <span className={styles.dialCode}>{selectedCountry.dial}</span>
+                        <svg className={`${styles.chevron} ${dropdownOpen ? styles.chevronOpen : ''}`} viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </button>
+
+                      {dropdownOpen && (
+                        <div className={styles.dropdown} role="listbox">
+                          <div className={styles.dropdownSearch}>
+                            <input
+                              type="text"
+                              className={styles.dropdownInput}
+                              placeholder="Search country..."
+                              value={countrySearch}
+                              onChange={(e) => setCountrySearch(e.target.value)}
+                              onClick={(e) => e.stopPropagation()}
+                              autoFocus
+                            />
+                          </div>
+                          <ul className={styles.dropdownList}>
+                            {filteredCountries.length === 0 ? (
+                              <li className={styles.dropdownEmpty}>No results</li>
+                            ) : (
+                              filteredCountries.map((c) => (
+                                <li
+                                  key={c.code}
+                                  role="option"
+                                  aria-selected={c.code === selectedCountry.code}
+                                  className={`${styles.dropdownItem} ${
+                                    c.code === selectedCountry.code ? styles.dropdownItemActive : ''
+                                  }`}
+                                  onClick={() => handleCountrySelect(c)}
+                                >
+                                  <span>
+                                    {String.fromCodePoint(
+                                      ...c.code.split('').map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65)
+                                    )}
+                                  </span>
+                                  <span className={styles.dropdownName}>{c.name}</span>
+                                  <span className={styles.dropdownDial}>{c.dial}</span>
+                                </li>
+                              ))
+                            )}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+
+                    <input
+                      id="phone"
+                      type="tel"
+                      className={`input-field ${styles.phoneInput}`}
+                      placeholder={`${selectedCountry.digits}-digit number`}
+                      value={phone}
+                      onChange={(e) => handlePhoneChange(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <p className={styles.phoneHint}>
+                    National number only. Matches pattern for {selectedCountry.name}.
+                  </p>
+                </div>
+
+                {/* District + Pincode Row */}
+                <div className={styles.rowGroup}>
+                  <div className={styles.inputGroup}>
+                    <label htmlFor="district">District</label>
+                    <input
+                      type="text"
+                      id="district"
+                      value={district}
+                      onChange={(e) => setDistrict(e.target.value)}
+                      placeholder="e.g. Malappuram"
+                      className="input-field"
+                      required
+                    />
+                  </div>
+
+                  <div className={styles.inputGroup}>
+                    <label htmlFor="pincode">Pincode</label>
+                    <input
+                      type="text"
+                      id="pincode"
+                      value={pincode}
+                      onChange={(e) => setPincode(e.target.value)}
+                      placeholder="e.g. 676505"
+                      className="input-field"
+                      required
+                      pattern="\d{4,10}"
+                      title="Pincode must be 4 to 10 digits"
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              // Login Mode Fields
+              <>
+                <div className={styles.inputGroup}>
+                  <label htmlFor="regEmail">Email Address</label>
+                  <input
+                    type="email"
+                    id="regEmail"
+                    value={regEmail}
+                    onChange={(e) => setRegEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="input-field"
+                    required
+                  />
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label htmlFor="regPassword">Password</label>
+                  <input
+                    type="password"
+                    id="regPassword"
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                    placeholder="Password or Phone Number"
+                    className="input-field"
+                    required
+                    minLength={6}
+                  />
+                  <p className={styles.phoneHint} style={{ marginTop: '4px', textAlign: 'left' }}>
+                    Note: If you registered without a password, enter your phone number as your password.
+                  </p>
+                </div>
+              </>
+            )}
+
+            <div className={styles.switchText}>
+              {isLoginMode ? (
+                <>
+                  Need to submit details?{' '}
+                  <button
+                    type="button"
+                    className={styles.switchLink}
+                    onClick={() => {
+                      setIsLoginMode(false);
+                      setAuthError('');
+                    }}
+                  >
+                    Click here
+                  </button>
+                </>
+              ) : (
+                <>
+                  Already have an account?{' '}
+                  <button
+                    type="button"
+                    className={styles.switchLink}
+                    onClick={() => {
+                      setIsLoginMode(true);
+                      setAuthError('');
+                    }}
+                  >
+                    Sign in here
+                  </button>
+                </>
+              )}
+            </div>
+
+            <div className={styles.footerActions} style={{ marginTop: '24px' }}>
+              <button
+                type="submit"
+                className="btn btn-primary btn-lg submitBtn"
+                disabled={submitting || questions.every(isQuestionLocked)}
+                style={{ width: '100%' }}
+              >
+                {submitting ? 'Submitting...' : isLoginMode ? 'Sign In & Submit Predictions' : 'Submit Details & Predictions'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Form Action Buttons for Authenticated Users */}
+        {user && (
+          <div className={styles.footerActions}>
+            <button
+              type="submit"
+              className="btn btn-primary btn-lg submitBtn"
+              disabled={submitting || questions.every(isQuestionLocked)}
+            >
+              {submitting ? 'Saving...' : 'Submit Predictions'}
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );
