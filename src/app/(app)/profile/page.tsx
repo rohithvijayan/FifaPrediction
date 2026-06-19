@@ -8,6 +8,11 @@ import styles from './profile.module.css';
 interface UserProfileData {
   total_points: number;
   registered_at: string;
+  favourite_team?: string | null;
+  teams?: {
+    name: string;
+    flag_emoji: string;
+  } | null;
 }
 
 export default function ProfilePage() {
@@ -22,14 +27,14 @@ export default function ProfilePage() {
       try {
         const { data, error } = await supabase
           .from('users')
-          .select('total_points, registered_at')
+          .select('total_points, registered_at, favourite_team, teams(name, flag_emoji)')
           .eq('uid', user.uid)
           .single();
 
         if (error) {
           console.error('Error fetching user stats:', error.message);
         } else if (data) {
-          setProfileData(data as UserProfileData);
+          setProfileData(data as unknown as UserProfileData);
         }
       } catch (err) {
         console.error('Unexpected error fetching user profile:', err);
@@ -130,6 +135,26 @@ export default function ProfilePage() {
                 </span>
               ) : (
                 <span className={styles.detailValueEmpty}>Not provided</span>
+              )}
+            </div>
+          </div>
+
+          {/* Favourite Team */}
+          <div className={styles.detailItem}>
+            <div className={styles.detailIcon}>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="m8 12 3 3 5-5" />
+              </svg>
+            </div>
+            <div className={styles.detailContent}>
+              <span className={styles.detailLabel}>Favourite Team</span>
+              {profileData?.teams ? (
+                <span className={styles.detailValue}>
+                  {profileData.teams.flag_emoji} {profileData.teams.name}
+                </span>
+              ) : (
+                <span className={styles.detailValueEmpty}>Not selected</span>
               )}
             </div>
           </div>

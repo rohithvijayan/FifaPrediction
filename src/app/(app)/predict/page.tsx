@@ -485,10 +485,17 @@ export default function PredictPage() {
               throw signInErr;
             }
           }
+          // After sign-in, get session to obtain uid
+          const { data: { session } } = await supabase.auth.getSession();
+          targetUid = session?.user?.id;
+          if (!targetUid) {
+            throw new Error('Authentication succeeded but session could not be established.');
+          }
         } else {
+          // signUp now returns the user ID directly — no email confirmation needed
           const generatedPassword = phone.trim() + "Ab1!";
           const fullPhone = `${selectedCountry.dial}${phone}`;
-          await signUp(
+          const newUserId = await signUp(
             regName.trim(),
             regEmail.trim(),
             generatedPassword,
@@ -496,19 +503,16 @@ export default function PredictPage() {
             district.trim(),
             pincode
           );
-        }
 
-        // Get session
-        const { data: { session } } = await supabase.auth.getSession();
-        targetUid = session?.user?.id;
-
-        if (!targetUid) {
-          if (!isLoginMode) {
-            setAlert({ type: 'success', message: '🎉 Registration successful! Please verify your email to lock in your predictions.' });
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            return;
+          if (!newUserId) {
+            // Fallback: try getSession in case the SDK established a session
+            const { data: { session } } = await supabase.auth.getSession();
+            targetUid = session?.user?.id;
+            if (!targetUid) {
+              throw new Error('Registration succeeded but could not obtain user ID. Please ensure "Confirm email" is disabled in your Supabase project settings.');
+            }
           } else {
-            throw new Error('Authentication succeeded but session could not be established.');
+            targetUid = newUserId;
           }
         }
       }

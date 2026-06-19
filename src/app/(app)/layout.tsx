@@ -33,6 +33,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { href: '/predict', label: 'Predict', icon: '⚽' },
+    { href: '/results', label: 'Standings', icon: '📊' },
     { href: '/rules', label: 'Rules', icon: '📜' },
     ...(user ? [{ href: '/profile', label: 'Profile', icon: '👤' }] : []),
   ];

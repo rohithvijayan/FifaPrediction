@@ -8,6 +8,7 @@ export interface User {
   uid: string;
   name: string;
   email: string;
+  favourite_team?: string;
   total_points: number;
   is_admin: boolean;
   registered_at: string;

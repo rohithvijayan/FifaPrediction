@@ -11,13 +11,22 @@ export interface AuthUser {
   phone?: string;
   district?: string;
   pincode?: string;
+  favouriteTeam?: string;
   getIdToken: () => Promise<string>;
 }
 
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
-  signUp: (name: string, email: string, password: string, phone?: string, district?: string, pincode?: string) => Promise<void>;
+  signUp: (
+    name: string,
+    email: string,
+    password: string,
+    phone?: string,
+    district?: string,
+    pincode?: string,
+    favouriteTeam?: string
+  ) => Promise<string | undefined>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -37,6 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       phone: sessionUser.user_metadata?.phone,
       district: sessionUser.user_metadata?.district,
       pincode: sessionUser.user_metadata?.pincode,
+      favouriteTeam: sessionUser.user_metadata?.favourite_team,
       getIdToken: async () => {
         const { data: { session } } = await supabase.auth.getSession();
         return session?.access_token || '';
@@ -77,17 +87,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     phone?: string,
     district?: string,
     pincode?: string,
-  ) => {
-    const { error } = await supabase.auth.signUp({
+    favouriteTeam?: string,
+  ): Promise<string | undefined> => {
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/predict`,
         data: {
           name,
           ...(phone ? { phone } : {}),
           ...(district ? { district } : {}),
           ...(pincode ? { pincode } : {}),
+          ...(favouriteTeam ? { favourite_team: favouriteTeam } : {}),
         },
       },
     });
@@ -95,6 +106,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) {
       throw error;
     }
+
+    return data.user?.id;
   };
 
   const signIn = async (email: string, password: string) => {

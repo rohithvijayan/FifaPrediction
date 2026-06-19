@@ -5,6 +5,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './register.module.css';
+import { supabase } from '@/lib/supabase/client';
+import { Team } from '@/lib/types';
 
 // ─── Country data (dial code + max local digit length) ───────────────────────
 const COUNTRIES = [
@@ -61,6 +63,10 @@ export default function RegisterPage() {
   const [district, setDistrict] = useState('');
   const [pincode, setPincode] = useState('');
 
+  // Favourite team field
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [favouriteTeam, setFavouriteTeam] = useState('');
+
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -78,6 +84,26 @@ export default function RegisterPage() {
       router.replace('/predict');
     }
   }, [user, authLoading, router]);
+
+  // Fetch teams from database for registration selection
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('teams')
+          .select('*')
+          .order('name', { ascending: true });
+        if (error) {
+          console.error('Error fetching teams:', error.message);
+        } else if (data) {
+          setTeams(data);
+        }
+      } catch (err) {
+        console.error('Unexpected error fetching teams:', err);
+      }
+    };
+    fetchTeams();
+  }, []);
 
   // Show a minimal spinner while auth state resolves to avoid blank flash
   if (authLoading) {
@@ -129,7 +155,15 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const fullPhone = phone ? `${selectedCountry.dial}${phone}` : undefined;
-      await signUp(name.trim(), email, password, fullPhone, district.trim() || undefined, pincode || undefined);
+      await signUp(
+        name.trim(),
+        email,
+        password,
+        fullPhone,
+        district.trim() || undefined,
+        pincode || undefined,
+        favouriteTeam || undefined
+      );
       router.push('/predict');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Registration failed. Please try again.';
@@ -325,6 +359,30 @@ export default function RegisterPage() {
                 autoComplete="postal-code"
               />
             </div>
+          </div>
+
+          {/* ── Favourite Team ─────────────────────────── */}
+          <div className={styles.inputGroup}>
+            <label htmlFor="favouriteTeam" className="input-label">
+              Favourite Team <span className={styles.optional}>(optional)</span>
+            </label>
+            <select
+              id="favouriteTeam"
+              className="input-field"
+              value={favouriteTeam}
+              onChange={(e) => setFavouriteTeam(e.target.value)}
+              style={{
+                backgroundColor: 'var(--bg-input)',
+                color: favouriteTeam ? 'var(--text-primary)' : 'var(--text-muted)',
+              }}
+            >
+              <option value="" style={{ color: 'var(--text-muted)' }}>Select your favourite team…</option>
+              {teams.map((t) => (
+                <option key={t.code} value={t.code} style={{ color: 'var(--text-primary)', backgroundColor: 'var(--bg-card)' }}>
+                  {t.flag_emoji} {t.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <button

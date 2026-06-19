@@ -205,10 +205,21 @@
     font-size: 1.5rem;
   }
   .ruleSection {
-    padding: 1.25rem 1.25rem;
+    padding: 1.25rem 1rem;
+  }
+  .ruleHeader {
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .ruleNumber {
+    width: 30px;
+    height: 30px;
+    font-size: 0.95rem;
+    margin-top: 2px;
   }
   .ruleHeader h2 {
     font-size: 1.1rem;
+    line-height: 1.4;
   }
   .ruleText {
     font-size: 0.95rem;
@@ -218,7 +229,14 @@
     backdrop-filter: blur(3px);
     -webkit-backdrop-filter: blur(3px);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 1.5rem 1.5rem;
+    padding: 1.25rem 1.25rem;
+  }
+  .heroTitle {
+    font-size: 1.65rem;
+  }
+  .heroSubtitle {
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
   }
 }
 

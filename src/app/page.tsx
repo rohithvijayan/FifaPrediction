@@ -2,8 +2,24 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Navbar from './components/Navbar';
 import styles from './page.module.css';
+import { createClient } from '@/lib/supabase/server';
 
-export default function LandingPage() {
+interface TeamRegistration {
+  team_code: string;
+  team_name: string;
+  flag_emoji: string;
+  registration_count: number;
+}
+
+export default async function LandingPage() {
+  const supabase = createClient();
+  const { data: topTeams } = await supabase
+    .from('team_registration_counts')
+    .select('*')
+    .order('registration_count', { ascending: false })
+    .limit(3);
+
+  const displayTeams = (topTeams || []) as unknown as TeamRegistration[];
   return (
     <div className={styles.wrapper}>
       <Navbar />
@@ -74,6 +90,44 @@ export default function LandingPage() {
                   </svg>
                 </div>
                 <p>CLIMB THE<br />LEADERBOARD</p>
+              </div>
+            </div>
+
+            {/* Top Registered Teams Leaderboard */}
+            <div className={styles.topTeamsSection}>
+              <div className={styles.topTeamsHeader}>
+                <span className={styles.hotBadge}>🔥 TRENDING FANS</span>
+                <h3>Popular Teams</h3>
+                <p>Teams with the highest registrations on Goal Guru</p>
+              </div>
+
+              <div className={styles.teamsGrid}>
+                {displayTeams.length > 0 ? (
+                  displayTeams.map((team: TeamRegistration, index: number) => {
+                    const rankMedals = ['🥇', '🥈', '🥉'];
+                    const rankColors = [styles.rankFirst, styles.rankSecond, styles.rankThird];
+                    return (
+                      <div key={team.team_code} className={`${styles.teamRankCard} ${rankColors[index]}`}>
+                        <div className={styles.rankBadge}>
+                          <span className={styles.rankMedal}>{rankMedals[index]}</span>
+                          <span className={styles.rankNumber}>#{index + 1}</span>
+                        </div>
+                        <div className={styles.teamFlagWrapper}>
+                          <span className={styles.teamFlag}>{team.flag_emoji}</span>
+                        </div>
+                        <div className={styles.teamInfo}>
+                          <h4>{team.team_name}</h4>
+                          <p><strong>{team.registration_count}</strong> {team.registration_count === 1 ? 'Fan' : 'Fans'} Joined</p>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className={styles.emptyTeams}>
+                    <span className={styles.emptyIcon}>⚽</span>
+                    <p>No team registrations yet. Support your favourite team first by registering!</p>
+                  </div>
+                )}
               </div>
             </div>
 

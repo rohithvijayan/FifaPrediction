@@ -27,6 +27,7 @@ export default function Navbar() {
       </div>
       <div className={styles.navLinks}>
         <Link href="/fixtures" className="anek-malayalam">മത്സരങ്ങൾ</Link>
+        <Link href="/results" className="anek-malayalam">പോയിന്റ് നില</Link>
         <Link href="/rules" className="anek-malayalam">നിയമങ്ങൾ</Link>
       </div>
       <div className={styles.navRight}>
