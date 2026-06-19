@@ -6,68 +6,99 @@ import Navbar from '../components/Navbar';
 import styles from './fixtures.module.css';
 import fixturesData from '../../../fixtures.json';
 
-// ── Flag emoji map for all 48 WC 2026 teams ──────────────────────────────────
-const TEAM_FLAGS: Record<string, string> = {
-  'Mexico': '🇲🇽',
-  'South Africa': '🇿🇦',
-  'South Korea': '🇰🇷',
-  'Czechia': '🇨🇿',
-  'Canada': '🇨🇦',
-  'Bosnia and Herzegovina': '🇧🇦',
-  'USA': '🇺🇸',
-  'Paraguay': '🇵🇾',
-  'Qatar': '🇶🇦',
-  'Switzerland': '🇨🇭',
-  'Brazil': '🇧🇷',
-  'Morocco': '🇲🇦',
-  'Haiti': '🇭🇹',
-  'Scotland': '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
-  'Australia': '🇦🇺',
-  'Turkey': '🇹🇷',
-  'Germany': '🇩🇪',
-  'Curaçao': '🇨🇼',
-  'Netherlands': '🇳🇱',
-  'Japan': '🇯🇵',
-  'Ivory Coast': '🇨🇮',
-  'Ecuador': '🇪🇨',
-  'Sweden': '🇸🇪',
-  'Tunisia': '🇹🇳',
-  'Spain': '🇪🇸',
-  'Cape Verde': '🇨🇻',
-  'Belgium': '🇧🇪',
-  'Egypt': '🇪🇬',
-  'Saudi Arabia': '🇸🇦',
-  'Uruguay': '🇺🇾',
-  'Iran': '🇮🇷',
-  'New Zealand': '🇳🇿',
-  'France': '🇫🇷',
-  'Senegal': '🇸🇳',
-  'Iraq': '🇮🇶',
-  'Norway': '🇳🇴',
-  'Argentina': '🇦🇷',
-  'Algeria': '🇩🇿',
-  'Austria': '🇦🇹',
-  'Jordan': '🇯🇴',
-  'Portugal': '🇵🇹',
-  'DR Congo': '🇨🇩',
-  'England': '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
-  'Croatia': '🇭🇷',
-  'Ghana': '🇬🇭',
-  'Panama': '🇵🇦',
-  'Uzbekistan': '🇺🇿',
-  'Colombia': '🇨🇴',
+// ── Country codes map for all 48 WC 2026 teams ──────────────────────────────────
+const TEAM_COUNTRY_CODES: Record<string, string> = {
+  'Mexico': 'MX',
+  'South Africa': 'ZA',
+  'South Korea': 'KR',
+  'Czechia': 'CZ',
+  'Canada': 'CA',
+  'Bosnia and Herzegovina': 'BA',
+  'USA': 'US',
+  'Paraguay': 'PY',
+  'Qatar': 'QA',
+  'Switzerland': 'CH',
+  'Brazil': 'BR',
+  'Morocco': 'MA',
+  'Haiti': 'HT',
+  'Scotland': 'GB-SCT',
+  'Australia': 'AU',
+  'Turkey': 'TR',
+  'Germany': 'DE',
+  'Curaçao': 'CW',
+  'Netherlands': 'NL',
+  'Japan': 'JP',
+  'Ivory Coast': 'CI',
+  'Ecuador': 'EC',
+  'Sweden': 'SE',
+  'Tunisia': 'TN',
+  'Spain': 'ES',
+  'Cape Verde': 'CV',
+  'Belgium': 'BE',
+  'Egypt': 'EG',
+  'Saudi Arabia': 'SA',
+  'Uruguay': 'UY',
+  'Iran': 'IR',
+  'New Zealand': 'NZ',
+  'France': 'FR',
+  'Senegal': 'SN',
+  'Iraq': 'IQ',
+  'Norway': 'NO',
+  'Argentina': 'AR',
+  'Algeria': 'DZ',
+  'Austria': 'AT',
+  'Jordan': 'JO',
+  'Portugal': 'PT',
+  'DR Congo': 'CD',
+  'England': 'GB-ENG',
+  'Croatia': 'HR',
+  'Ghana': 'GH',
+  'Panama': 'PA',
+  'Uzbekistan': 'UZ',
+  'Colombia': 'CO',
 };
-
-const getFlag = (team: string) => TEAM_FLAGS[team.trim()] ?? '🏳️';
 
 export default function FixturesPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'all' | 'group' | 'round32_16' | 'quarter_semi' | 'finals'>('all');
+
+  const renderFlag = (team: string) => {
+    const code = TEAM_COUNTRY_CODES[team.trim()];
+    if (code) {
+      return (
+        <img
+          src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`}
+          alt={`${team} flag`}
+          className={styles.flagImage}
+        />
+      );
+    }
+    return <span className={styles.teamFlag}>🏳️</span>;
+  };
 
   // Filter and group fixtures
   const groupedFixtures = useMemo(() => {
-    const filtered = fixturesData.fixtures.filter(match =>
-      match.fixture.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filtered = fixturesData.fixtures.filter(match => {
+      // Search filter
+      const matchesSearch = match.fixture.toLowerCase().includes(searchQuery.toLowerCase());
+      if (!matchesSearch) return false;
+
+      // Tab filter
+      if (activeTab === 'all') return true;
+      if (activeTab === 'group') {
+        return !match.stage;
+      }
+      if (activeTab === 'round32_16') {
+        return match.stage === 'Round of 32' || match.stage === 'Round of 16';
+      }
+      if (activeTab === 'quarter_semi') {
+        return match.stage === 'Quarter-finals' || match.stage === 'Semi-finals';
+      }
+      if (activeTab === 'finals') {
+        return match.stage === 'Third-Place Play-Off' || match.stage === 'Final';
+      }
+      return true;
+    });
 
     const groups: Record<string, typeof fixturesData.fixtures> = {};
     filtered.forEach(match => {
@@ -78,7 +109,7 @@ export default function FixturesPage() {
     });
 
     return groups;
-  }, [searchQuery]);
+  }, [searchQuery, activeTab]);
 
   // Format date function
   const formatDate = (dateStr: string) => {
@@ -116,6 +147,40 @@ export default function FixturesPage() {
           </div>
         </div>
 
+        {/* Grouping / Tabs switcher */}
+        <div className={styles.tabContainer}>
+          <button 
+            onClick={() => setActiveTab('all')} 
+            className={`${styles.tabBtn} ${activeTab === 'all' ? styles.activeTab : ''}`}
+          >
+            All
+          </button>
+          <button 
+            onClick={() => setActiveTab('group')} 
+            className={`${styles.tabBtn} ${activeTab === 'group' ? styles.activeTab : ''}`}
+          >
+            Group Stage
+          </button>
+          <button 
+            onClick={() => setActiveTab('round32_16')} 
+            className={`${styles.tabBtn} ${activeTab === 'round32_16' ? styles.activeTab : ''}`}
+          >
+            R32 & R16
+          </button>
+          <button 
+            onClick={() => setActiveTab('quarter_semi')} 
+            className={`${styles.tabBtn} ${activeTab === 'quarter_semi' ? styles.activeTab : ''}`}
+          >
+            Quarters & Semis
+          </button>
+          <button 
+            onClick={() => setActiveTab('finals')} 
+            className={`${styles.tabBtn} ${activeTab === 'finals' ? styles.activeTab : ''}`}
+          >
+            Finals
+          </button>
+        </div>
+
         <div className={styles.fixturesContainer}>
           {Object.entries(groupedFixtures).map(([date, matches]) => (
             <div key={date} className={styles.dateGroup}>
@@ -132,7 +197,7 @@ export default function FixturesPage() {
                         <>
                           {/* Left team */}
                           <div className={styles.teamBlock}>
-                            <span className={styles.teamFlag}>{getFlag(teams[0])}</span>
+                            {renderFlag(teams[0])}
                             <span className={styles.teamName}>{teams[0]}</span>
                           </div>
 
@@ -145,7 +210,7 @@ export default function FixturesPage() {
                           {/* Right team */}
                           <div className={`${styles.teamBlock} ${styles.teamBlockRight}`}>
                             <span className={styles.teamName}>{teams[1]}</span>
-                            <span className={styles.teamFlag}>{getFlag(teams[1])}</span>
+                            {renderFlag(teams[1])}
                           </div>
                         </>
                       ) : (

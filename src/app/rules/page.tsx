@@ -86,7 +86,7 @@ export default function RulesPage() {
       </section>
 
       <div className={styles.footerMsg}>
-        <p>ഏറ്റവും കൂടുതൽ പോയിന്റ് നേടുന്നവരാണ് വിജയികൾ.<br/>എല്ലാവർക്കും ആശംസകൾ! 🎉</p>
+        <p>ഏറ്റവും കൂടുതൽ പോയിന്റ് നേടുന്നവരാണ് വിജയികൾ.<br />എല്ലാവർക്കും ആശംസകൾ! 🎉</p>
       </div>
     </div>
   );
@@ -116,11 +116,18 @@ export default function RulesPage() {
           </div>
         </header>
 
+        {/* Hero Section */}
+        <div className={`${styles.hero} ${styles.appHero}`}>
+          <div className={styles.heroOverlay}></div>
+          <div className={styles.heroCard}>
+            <p className={styles.heroWorldCupText}>പന്ത്ദുനിയ</p>
+            <h1 className={styles.heroTitle}>പോയിന്റ് നിയമങ്ങൾ</h1>
+            <p className={styles.heroSubtitle}>FIFA WORLD CUP 2026™ PREDICTION RULES</p>
+          </div>
+        </div>
+
         {/* Main Content Area containing the rules */}
         <main className={`${layoutStyles.mainContent} anek-malayalam`}>
-          <div className={styles.header} style={{ marginTop: '1rem' }}>
-            <h1 className={styles.title}>⚽ പോയിന്റ് നിയമങ്ങൾ</h1>
-          </div>
           {renderRulesContent()}
         </main>
 
@@ -146,10 +153,17 @@ export default function RulesPage() {
     <div className={`${styles.wrapper} anek-malayalam`}>
       <Navbar />
 
-      <main className={styles.main}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>⚽ പോയിന്റ് നിയമങ്ങൾ</h1>
+      {/* Hero Section */}
+      <div className={`${styles.hero} ${styles.guestHero}`}>
+        <div className={styles.heroOverlay}></div>
+        <div className={styles.heroCard}>
+          <p className={styles.heroWorldCupText}>പന്ത്ദുനിയ</p>
+          <h1 className={styles.heroTitle}>പോയിന്റ് നിയമങ്ങൾ</h1>
+          <p className={styles.heroSubtitle}>FIFA WORLD CUP 2026™ PREDICTION RULES</p>
         </div>
+      </div>
+
+      <main className={styles.main}>
         {renderRulesContent()}
       </main>
     </div>

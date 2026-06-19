@@ -9,35 +9,50 @@
 
 .main {
   flex-grow: 1;
-  padding: 6.5rem 1.5rem 4rem 1.5rem;
+  padding: 3rem 1.5rem 4rem 1.5rem;
   max-width: 800px;
   margin: 0 auto;
   width: 100%;
 }
 
-.header {
+/* ── Header styled to match homepage hubHeader ── */
+.hubHeader {
   text-align: center;
   margin-bottom: 3rem;
   animation: fadeInDown 0.6s ease-out;
 }
 
-.title {
-  font-family: var(--font-heading), sans-serif;
-  font-size: 2.5rem;
+.worldCupText {
+  color: #ff1b91;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  margin-bottom: 0.5rem;
+}
+
+.predictionHub {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.predictionHub h2 {
+  font-size: 1.75rem;
   font-weight: 800;
   color: #ffffff;
-  margin-bottom: 1rem;
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  margin: 0;
+  letter-spacing: 0.02em;
 }
 
-.subtitle {
-  color: #00d4aa;
-  font-size: 1.1rem;
-  font-weight: 500;
-  max-width: 600px;
-  margin: 0 auto;
+.line {
+  height: 2px;
+  width: 3rem;
+  background: linear-gradient(90deg, transparent, #00d4aa, transparent);
 }
 
+/* ── Content & Rule Sections ── */
 .content {
   display: flex;
   flex-direction: column;
@@ -46,43 +61,45 @@
 }
 
 .ruleSection {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 1rem;
   padding: 1.5rem 2rem;
+  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.6);
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
 }
 
 .ruleSection:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  border-color: rgba(0, 212, 170, 0.3);
+  box-shadow: 0 16px 32px -12px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 212, 170, 0.06);
+  border-color: rgba(0, 212, 170, 0.25);
 }
 
 .ruleHeader {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
 .ruleNumber {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, #00d4aa 0%, #009977 100%);
-  color: #000;
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #00b894 0%, #00f2fe 100%);
+  color: #0c0a25;
   font-weight: 800;
   font-size: 1.1rem;
   border-radius: 50%;
   flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0, 242, 254, 0.2);
 }
 
 .ruleHeader h2 {
   font-size: 1.3rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -92,13 +109,14 @@
 }
 
 .pointsBadge {
-  font-size: 0.85rem;
-  font-weight: 600;
-  background: rgba(139, 92, 246, 0.15);
-  color: #a78bfa;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: rgba(0, 212, 170, 0.1);
+  color: #00d4aa;
   padding: 0.2rem 0.6rem;
   border-radius: 1rem;
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(0, 212, 170, 0.25);
+  letter-spacing: 0.02em;
 }
 
 .ruleText {
@@ -123,7 +141,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding-left: 1rem;
+  padding-left: 1.25rem;
   border-left: 2px solid rgba(0, 212, 170, 0.2);
 }
 
@@ -131,7 +149,7 @@
   font-size: 1.1rem;
   color: #00d4aa;
   margin-bottom: 0.4rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .subRule p {
@@ -141,8 +159,8 @@
 }
 
 .example {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: 0.5rem;
   padding: 1rem;
   font-size: 0.95rem;
@@ -155,13 +173,14 @@
   text-align: center;
   margin-top: 2rem;
   padding: 2rem;
-  background: linear-gradient(180deg, transparent 0%, rgba(0, 212, 170, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(0, 184, 148, 0.04) 0%, rgba(0, 242, 254, 0.04) 100%);
   border-radius: 1rem;
-  border: 1px solid rgba(0, 212, 170, 0.1);
+  border: 1px solid rgba(0, 212, 170, 0.15);
+  box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.4);
 }
 
 .footerMsg p {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 600;
   color: #ffffff;
   line-height: 1.6;
@@ -180,18 +199,132 @@
 
 @media (max-width: 767px) {
   .main {
-    padding: 6.5rem 1rem 2rem 1rem;
+    padding: 2rem 1rem 3rem 1rem;
   }
-  .title {
-    font-size: 2rem;
+  .predictionHub h2 {
+    font-size: 1.5rem;
   }
   .ruleSection {
-    padding: 1.25rem 1rem;
+    padding: 1.25rem 1.25rem;
   }
   .ruleHeader h2 {
     font-size: 1.1rem;
   }
   .ruleText {
-    font-size: 1rem;
+    font-size: 0.95rem;
+  }
+  .heroCard {
+    background: rgba(10, 14, 26, 0.15);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 1.5rem 1.5rem;
   }
 }
+
+/* ── Hero Section ── */
+.hero {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: url('/images/bg1.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  text-align: center;
+  overflow: hidden;
+  box-shadow: inset 0 -20px 40px -10px #0a0e1a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    #0a0e1a 0%,
+    rgba(10, 14, 26, 0.45) 25%,
+    rgba(10, 14, 26, 0.45) 75%,
+    #0a0e1a 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+.guestHero {
+  height: 45vh;
+  min-height: 340px;
+  padding-top: 5rem;
+}
+
+.appHero {
+  height: 30vh;
+  min-height: 220px;
+  padding-top: 1rem;
+}
+
+@media (min-width: 768px) {
+  .guestHero {
+    height: 50vh;
+    min-height: 400px;
+    padding-top: 6rem;
+  }
+  
+  .appHero {
+    height: 35vh;
+    min-height: 260px;
+  }
+}
+
+.heroCard {
+  position: relative;
+  z-index: 2;
+  background: rgba(10, 14, 26, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 2rem 2.5rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  max-width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.heroWorldCupText {
+  color: #ff1b91;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.25em;
+  margin-bottom: 0.25rem;
+  text-shadow: 0 0 12px rgba(255, 27, 145, 0.6);
+}
+
+.heroTitle {
+  font-size: 2.25rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  margin: 0;
+  text-shadow: 0 4px 15px rgba(0, 0, 0, 0.9);
+  background: linear-gradient(135deg, #ffffff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.heroSubtitle {
+  color: #00d4aa;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
