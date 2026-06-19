@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import SearchSelect from '@/app/components/SearchSelect';
 import { Question, Team, Player, Prediction, ActualResult } from '@/lib/types';
@@ -97,7 +96,7 @@ const ScoreboardIcon = () => (
 
 export default function PredictPage() {
   const { user, signUp, signIn } = useAuth();
-  const router = useRouter();
+
   const [questions, setQuestions] = useState<Question[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -110,7 +109,7 @@ export default function PredictPage() {
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Guest Registration & Login states
-  const [isLoginMode, setIsLoginMode] = useState(false);
+  const [isLoginMode] = useState(false);
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
