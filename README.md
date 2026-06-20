@@ -100,15 +100,6 @@ predictions/{uid}_{fixture_id}
 
 ---
 
-## Vercel Cron Schedule
-
-| Job | Schedule | Purpose |
-|---|---|---|
-| seed-fixtures | `0 1 * * *` | 01:00 UTC (06:30 IST) — seeds today + tomorrow |
-| live-poll | `*/10 * * * *` | Every 10 min — updates live match scores |
-| settle-results | `*/5 * * * *` | Every 5 min — scores finished matches |
-
----
 
 ## Deployment
 

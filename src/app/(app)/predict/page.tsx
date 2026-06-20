@@ -529,6 +529,13 @@ export default function PredictPage() {
 
       if (targetUid) {
         await savePredictionsToDb(targetUid);
+        const fbq = typeof window !== 'undefined' ? (window as unknown as { fbq?: (event: string, action: string) => void }).fbq : undefined;
+        if (fbq) {
+          if (!user) {
+            fbq('track', 'CompleteRegistration');
+          }
+          fbq('track', 'SubmitApplication');
+        }
         setAlert({
           type: 'success',
           message: isLoginMode
