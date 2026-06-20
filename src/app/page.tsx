@@ -98,7 +98,7 @@ export default async function LandingPage() {
               <div className={styles.topTeamsHeader}>
                 <span className={styles.hotBadge}>🔥 TRENDING FANS</span>
                 <h3>Popular Teams</h3>
-                <p>Teams with the highest registrations on Goal Guru</p>
+                <p>Teams with the highest registrations on PanthDuniya</p>
               </div>
 
               <div className={styles.teamsGrid}>
