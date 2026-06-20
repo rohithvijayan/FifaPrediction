@@ -1,5 +1,4 @@
-# ഗോൾ ഗുരു | Goal Guru
-
+# PanthDuniya
 **FIFA World Cup 2026 Prediction Platform** — Built for Keralites.
 
 Predict 6 Key Questions, earn points per correct pick, and climb the global leaderboard to win exciting prizes.
@@ -35,11 +34,10 @@ Here is a glimpse of the Goal Guru platform:
 | Layer | Technology |
 |---|---|
 | Framework | Next.js 14 (App Router, TypeScript) |
-| Auth | Firebase Authentication |
-| Database | Cloud Firestore |
-| Cache | Upstash Redis (via REST) |
+| Auth & Database | Supabase (PostgreSQL) |
 | Match Data | API-Football v3 |
-| Cron Jobs | Vercel Cron |
+| Cron Jobs | cron-job.org (external trigger) & Vercel Functions |
+| Analytics | Meta Pixel (Facebook Pixel) |
 | Hosting | Vercel |
 
 ---
@@ -56,15 +54,12 @@ cp .env.example .env.local
 
 | Variable | Description |
 |---|---|
-| `NEXT_PUBLIC_FIREBASE_*` | Firebase client SDK config (from Firebase Console) |
-| `FIREBASE_PROJECT_ID` | Firebase Admin — project ID |
-| `FIREBASE_CLIENT_EMAIL` | Firebase Admin — service account email |
-| `FIREBASE_PRIVATE_KEY` | Firebase Admin — private key (with newlines escaped as `\n`) |
-| `UPSTASH_REDIS_REST_URL` | Upstash Redis REST URL |
-| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis REST token |
-| `FOOTBALL_API_KEY` | API-Football v3 key |
-| `CRON_SECRET` | Random secret string for Vercel Cron authentication |
-| `ADMIN_UID` | Firebase UID of the admin user (set after first login) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Anonymous Client Key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Service Role Key (for admin tasks) |
+| `FOOTBALL_API_KEY` | API-Football v3 key (for match data) |
+| `FOOTBALL_API_HOST` | API-Football v3 host URL |
+| `CRON_SECRET` | Secret string to authenticate cron-job.org requests |
 
 ---
 
@@ -84,43 +79,28 @@ Visit [http://localhost:3000](http://localhost:3000)
 
 ## Architecture
 
-### Route Groups
-- `app/(auth)/` — Login & Register (public, redirects to /dashboard if logged in)
-- `app/(app)/` — Protected pages (dashboard, leaderboard, profile)
-- `app/admin/` — Admin panel (protected by ADMIN_UID)
+### Core Pages
+- `/` — Landing page with live popular/trending teams.
+- `/(auth)/register` — Custom registration flow (capturing email, phone, pincode, district, and favourite team).
+- `/(app)/predict` — The main 6-question prediction form. Users can only submit once.
+- `/results` — Live Group Standings with search and filter capabilities.
+- `/fixtures` — Complete match schedule grouped by stage (Group Stage, Round of 32, etc.).
 
-### API Routes
-| Route | Method | Description |
-|---|---|---|
-| `/api/auth/session` | POST/DELETE | Manages `__session` cookie for middleware |
-| `/api/matches/today` | GET | Today's fixtures merged with user predictions |
-| `/api/predictions` | POST | Submit/update a prediction (server-side kickoff lock) |
-| `/api/leaderboard` | GET | Top 20 + calling user's rank |
-| `/api/admin/settle` | POST | Manual result settlement (admin only) |
-| `/api/cron/seed-fixtures` | GET | Seeds fixtures from API-Football into Firestore |
-| `/api/cron/live-poll` | GET | Updates live match status in Firestore |
-| `/api/cron/settle-results` | GET | Scores predictions and updates user points |
+### Database (Supabase PostgreSQL)
+Key tables powering the application:
+- `users` (extended profile metadata)
+- `group_standings` (live updated standings)
+- `favourite_teams` (used to calculate popular team leaderboard)
+- `predictions` (stores user answers to the 6 questions)
 
-### Firestore Collections
-```
-users/{uid}
-  ├── name, email, total_points, correct_predictions, registered_at
+### Standings Automation
+- Standings are synchronized from API-Football via the `/api/cron/update-standings` endpoint.
+- Since Vercel Hobby limits cron jobs to 1 per day, the endpoint is triggered every 4 hours automatically using **cron-job.org**.
 
-fixtures/{fixture_id}
-  ├── fixture_id, match_date, kickoff_utc, kickoff_ist
-  ├── home_team, away_team, home_team_logo, away_team_logo
-  ├── home_score, away_score, status, result
-
-predictions/{uid}_{fixture_id}
-  ├── user_id, fixture_id, predicted_result
-  ├── editable, points_earned, is_correct, submitted_at
-```
-
-### Scoring
-- **10 points** per correct prediction
-- Predictions locked at kickoff (enforced server-side in `/api/predictions`)
-- Scoring runs every 5 minutes via `settle-results` cron
-- Tie-breaking: most correct predictions → earliest registration date
+### Scoring & Predictions
+- Users predict 6 key outcomes: World Cup Winner, Runner-Up, Semi-Finalists, etc.
+- Different point weights apply to each question (e.g., 30 pts for Winner, 20 pts for Runner-Up).
+- Submissions are permanently locked once completed per phone number / email.
 
 ---
 
@@ -141,11 +121,13 @@ After first deployment:
 
 ## Design System
 
-Dark stadium night theme:
-- **Background**: `#0b1326`
-- **Primary**: `#4edea3` (Pitch Green)
-- **Fonts**: Anybody (headlines) + Hanken Grotesk (body)
-- **Icons**: Material Symbols Outlined
+Premium Dark Theme with Glassmorphism:
+- **Backgrounds**: `#0a0e1a` (Deep Night), `#1a1f35` (Cards)
+- **Accents**: Mint Green (`#34d399`), Hot Pink (`#ec4899`), Gold (`#f59e0b`)
+- **Fonts**: 
+  - *Outfit* & *Inter* for modern English UI.
+  - *Anek Malayalam* & *Noto Sans Malayalam* for native localizations.
+- **Visuals**: Dynamic gradient glows, box shadows, and flagcdn integration.
 
 ---
 
