@@ -2,7 +2,31 @@
 
 **FIFA World Cup 2026 Prediction Platform** — Built for Keralites.
 
-Predict today's 4 matches (Home / Draw / Away), earn 10 points per correct pick, and climb the global leaderboard.
+Predict 6 Key Questions, earn points per correct pick, and climb the global leaderboard to win exciting prizes.
+
+---
+
+## UI Preview
+
+Here is a glimpse of the Goal Guru platform:
+
+### 1. Landing Page
+![Landing Page](UI/1.png)
+
+### 2. Popular Teams
+![Popular Teams](UI/2.png)
+
+### 3. Fixtures Schedule
+![Fixtures Schedule](UI/3.png)
+
+### 4. Group Standings
+![Group Standings](UI/4.png)
+
+### 5. Prediction Rules
+![Prediction Rules](UI/5.png)
+
+### 6. Predict & Win
+![Predict & Win Form](UI/6.png)
 
 ---
 
