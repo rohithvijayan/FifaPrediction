@@ -3,6 +3,7 @@ import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import AudioPlayer from '@/app/components/AudioPlayer';
 import { Analytics } from '@vercel/analytics/next';
+import FacebookPixel from '@/app/components/FacebookPixel';
 
 export const metadata: Metadata = {
   title: {
@@ -35,6 +36,7 @@ export default function RootLayout({
       </head>
       <body>
         <AuthProvider>
+          <FacebookPixel />
           <AudioPlayer />
           {children}
         </AuthProvider>
