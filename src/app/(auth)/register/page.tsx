@@ -164,6 +164,10 @@ export default function RegisterPage() {
         pincode || undefined,
         favouriteTeam || undefined
       );
+      const fbq = typeof window !== 'undefined' ? (window as unknown as { fbq?: (event: string, action: string) => void }).fbq : undefined;
+      if (fbq) {
+        fbq('track', 'CompleteRegistration');
+      }
       router.push('/predict');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Registration failed. Please try again.';

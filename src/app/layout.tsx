@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import AudioPlayer from '@/app/components/AudioPlayer';
+import FacebookPixel from '@/app/components/FacebookPixel';
 
 export const metadata: Metadata = {
   title: {
@@ -34,6 +35,7 @@ export default function RootLayout({
       </head>
       <body>
         <AuthProvider>
+          <FacebookPixel />
           <AudioPlayer />
           {children}
         </AuthProvider>
