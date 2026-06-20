@@ -111,10 +111,12 @@ export default function ResultsPage() {
     const code = TEAM_COUNTRY_CODES[teamCode.toUpperCase()];
     if (code) {
       return (
-        <img
+        <Image
           src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`}
           alt={`${teamCode} flag`}
           className={styles.flagImage}
+          width={40}
+          height={30}
         />
       );
     }

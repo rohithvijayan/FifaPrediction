@@ -1,9 +1,15 @@
 import type { Metadata } from 'next';
+import { Inter, Outfit, Noto_Sans_Malayalam, Anek_Malayalam } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import AudioPlayer from '@/app/components/AudioPlayer';
 import { Analytics } from '@vercel/analytics/next';
 import FacebookPixel from '@/app/components/FacebookPixel';
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
+const notoSansMalayalam = Noto_Sans_Malayalam({ subsets: ['malayalam'], weight: ['400', '500', '600', '700', '800'], variable: '--font-noto-malayalam' });
+const anekMalayalam = Anek_Malayalam({ subsets: ['malayalam'], weight: ['300', '400', '500', '600', '700', '800'], variable: '--font-anek-malayalam' });
 
 export const metadata: Metadata = {
   title: {
@@ -27,11 +33,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${outfit.variable} ${notoSansMalayalam.variable} ${anekMalayalam.variable}`}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Anek+Malayalam:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </head>
       <body>

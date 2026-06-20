@@ -1,5 +1,4 @@
 /* ⚽ പന്തഭ്രനിയ — Design System */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Noto+Sans+Malayalam:wght@400;500;600;700;800&display=swap');
 
 /* ============================================================
    CSS Variables — Design Tokens
@@ -18,8 +17,11 @@
   --accent-pink: #ec4899;
   --accent-purple: #8b5cf6;
   --accent-gold: #f59e0b;
-  --accent-red: #ef4444;
-  --accent-blue: #3b82f6;
+
+  /* Status Colors */
+  --status-success: #10b981;
+  --status-error: #ef4444;
+  --status-warning: #f59e0b;
 
   /* Gradients */
   --gradient-mint: linear-gradient(135deg, #34d399, #06b6d4);
@@ -39,9 +41,9 @@
   --border-glow-strong: rgba(52, 211, 153, 0.6);
 
   /* Typography */
-  --font-heading: 'Outfit', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  --font-malayalam: 'Noto Sans Malayalam', sans-serif;
+  --font-heading: var(--font-outfit), sans-serif;
+  --font-body: var(--font-inter), sans-serif;
+  --font-malayalam: var(--font-noto-malayalam), sans-serif;
 
   /* Spacing */
   --radius-sm: 8px;
@@ -178,7 +180,7 @@ b.text-malayalam {
 }
 
 .anek-malayalam {
-  font-family: "Anek Malayalam", sans-serif;
+  font-family: var(--font-anek-malayalam), sans-serif;
   font-optical-sizing: auto;
   font-weight: 600;
   font-style: normal;
@@ -187,7 +189,7 @@ b.text-malayalam {
 
 .anek-malayalam h1,
 h1.anek-malayalam {
-  font-family: "Anek Malayalam", sans-serif;
+  font-family: var(--font-anek-malayalam), sans-serif;
   font-weight: 800 !important;
 }
 

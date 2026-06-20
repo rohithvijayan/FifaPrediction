@@ -66,10 +66,12 @@ export default function FixturesPage() {
     const code = TEAM_COUNTRY_CODES[team.trim()];
     if (code) {
       return (
-        <img
+        <Image
           src={`https://flagcdn.com/w40/${code.toLowerCase()}.png`}
           alt={`${team} flag`}
           className={styles.flagImage}
+          width={40}
+          height={30}
         />
       );
     }
