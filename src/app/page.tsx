@@ -157,7 +157,7 @@ export default async function LandingPage() {
       <footer className={styles.footer}>
         <div className={styles.initiativeText}>
           <a href="https://www.dyfikerala.com/" target="_blank" rel="noopener noreferrer">
-            A Yuvadhara Online Initiative
+            Created by DYFI PROFESSIONAL SUBCOMMITTEE
           </a>
         </div>
         <div className={styles.socialLinks}>

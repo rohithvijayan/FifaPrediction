@@ -119,6 +119,7 @@ export default function PredictPage() {
   const [countrySearch, setCountrySearch] = useState('');
   const [district, setDistrict] = useState('');
   const [pincode, setPincode] = useState('');
+  const [favouriteTeam, setFavouriteTeam] = useState('');
   const [authError, setAuthError] = useState('');
 
   // Filtered countries based on search
@@ -306,8 +307,9 @@ export default function PredictPage() {
     }));
 
   // Helper to check if a question is locked
+  const hasSubmittedAny = Object.keys(predictions).length > 0;
   const isQuestionLocked = (q: Question) => {
-    return new Date(q.lock_date) <= new Date() || q.is_settled;
+    return hasSubmittedAny || new Date(q.lock_date) <= new Date() || q.is_settled;
   };
 
   const handleInputChange = (qId: number, field: string, value: string) => {
@@ -413,24 +415,31 @@ export default function PredictPage() {
     setAuthError('');
 
     // 1. Validate predictions
-    let hasEmpty = false;
-    questions.forEach(q => {
-      if (isQuestionLocked(q)) return; // Skip locked questions
+    let errorMessage = '';
+    for (const q of questions) {
+      if (isQuestionLocked(q)) continue; // Skip locked questions
 
       const val = formValues[q.id];
       if (q.question_number <= 3) {
-        if (!val?.team) hasEmpty = true;
+        if (!val?.team) errorMessage = 'Please complete all open prediction questions before submitting.';
       } else if (q.question_number <= 5) {
-        if (!val?.player || val.player === 'custom:') hasEmpty = true;
+        if (!val?.player || val.player === 'custom:') errorMessage = 'Please complete all open prediction questions before submitting.';
       } else if (q.question_number === 6) {
         if (!val?.team1 || !val?.team2 || val.team1_score === '' || val.team2_score === '') {
-          hasEmpty = true;
+          errorMessage = 'Please complete all open prediction questions before submitting.';
+        } else {
+          const s1 = parseInt(val.team1_score, 10);
+          const s2 = parseInt(val.team2_score, 10);
+          if (s1 < 1 && s2 < 1) {
+            errorMessage = 'For the Final Match, at least one score must be 1 or greater (0-0 is not allowed).';
+          }
         }
       }
-    });
+      if (errorMessage) break;
+    }
 
-    if (hasEmpty) {
-      setAlert({ type: 'error', message: 'Please complete all open prediction questions before submitting.' });
+    if (errorMessage) {
+      setAlert({ type: 'error', message: errorMessage });
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -500,8 +509,9 @@ export default function PredictPage() {
             regEmail.trim(),
             generatedPassword,
             fullPhone,
-            district.trim(),
-            pincode
+            district.trim() || undefined,
+            pincode || undefined,
+            favouriteTeam || undefined
           );
 
           if (!newUserId) {
@@ -881,15 +891,28 @@ export default function PredictPage() {
                 <div className={styles.rowGroup}>
                   <div className={styles.inputGroup}>
                     <label htmlFor="district">District</label>
-                    <input
-                      type="text"
+                    <select
                       id="district"
+                      className="input-field"
                       value={district}
                       onChange={(e) => setDistrict(e.target.value)}
-                      placeholder="e.g. Malappuram"
-                      className="input-field"
                       required
-                    />
+                      style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                        color: district ? '#ffffff' : '#9ca3af',
+                      }}
+                    >
+                      <option value="" style={{ color: '#9ca3af' }}>Select district...</option>
+                      {[
+                        'Alappuzha', 'Ernakulam', 'Idukki', 'Kannur', 'Kasaragod', 'Kollam',
+                        'Kottayam', 'Kozhikode', 'Malappuram', 'Palakkad', 'Pathanamthitta',
+                        'Thiruvananthapuram', 'Thrissur', 'Wayanad'
+                      ].map((d) => (
+                        <option key={d} value={d} style={{ color: '#ffffff', backgroundColor: '#0a0e1a' }}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className={styles.inputGroup}>
@@ -906,6 +929,28 @@ export default function PredictPage() {
                       title="Pincode must be 4 to 10 digits"
                     />
                   </div>
+                </div>
+
+                {/* Favourite Team */}
+                <div className={styles.inputGroup}>
+                  <label htmlFor="favouriteTeam">Favourite Team <span style={{fontSize: '0.85rem', color: '#9ca3af', fontWeight: 'normal'}}>(optional)</span></label>
+                  <select
+                    id="favouriteTeam"
+                    className="input-field"
+                    value={favouriteTeam}
+                    onChange={(e) => setFavouriteTeam(e.target.value)}
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      color: favouriteTeam ? '#ffffff' : '#9ca3af',
+                    }}
+                  >
+                    <option value="" style={{ color: '#9ca3af' }}>Select your favourite team...</option>
+                    {teams.map((t) => (
+                      <option key={t.code} value={t.code} style={{ color: '#ffffff', backgroundColor: '#0a0e1a' }}>
+                        {t.flag_emoji} {t.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </>
             ) : (
@@ -959,7 +1004,7 @@ export default function PredictPage() {
         )}
 
         {/* Form Action Buttons for Authenticated Users */}
-        {user && (
+        {user && !hasSubmittedAny && (
           <div className={styles.footerActions}>
             <button
               type="submit"
@@ -968,6 +1013,13 @@ export default function PredictPage() {
             >
               {submitting ? 'Saving...' : 'Submit Predictions'}
             </button>
+          </div>
+        )}
+        {user && hasSubmittedAny && (
+          <div className={styles.footerActions}>
+            <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', borderRadius: '8px', border: '1px solid rgba(52, 211, 153, 0.2)', width: '100%' }}>
+              ✅ Your predictions have been locked in. Good luck!
+            </div>
           </div>
         )}
       </form>

@@ -332,15 +332,27 @@ export default function RegisterPage() {
               <label htmlFor="district" className="input-label">
                 District <span className={styles.optional}>(optional)</span>
               </label>
-              <input
+              <select
                 id="district"
-                type="text"
                 className="input-field"
-                placeholder="e.g. Kannur"
                 value={district}
                 onChange={(e) => setDistrict(e.target.value)}
-                autoComplete="address-level2"
-              />
+                style={{
+                  backgroundColor: 'var(--bg-input)',
+                  color: district ? 'var(--text-primary)' : 'var(--text-muted)',
+                }}
+              >
+                <option value="" style={{ color: 'var(--text-muted)' }}>Select district...</option>
+                {[
+                  'Alappuzha', 'Ernakulam', 'Idukki', 'Kannur', 'Kasaragod', 'Kollam',
+                  'Kottayam', 'Kozhikode', 'Malappuram', 'Palakkad', 'Pathanamthitta',
+                  'Thiruvananthapuram', 'Thrissur', 'Wayanad'
+                ].map((d) => (
+                  <option key={d} value={d} style={{ color: 'var(--text-primary)', backgroundColor: 'var(--bg-card)' }}>
+                    {d}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className={styles.inputGroup}>

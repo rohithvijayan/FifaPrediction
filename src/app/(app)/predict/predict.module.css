@@ -28,7 +28,8 @@
   margin: 0 auto;
 }
 
-.loadingWrapper, .errorWrapper {
+.loadingWrapper,
+.errorWrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -47,7 +48,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .cardList {
@@ -447,7 +450,7 @@
   padding: 0 12px;
   height: 100%;
   min-height: 44px;
-  background: var(--bg-surface, rgba(255,255,255,0.05));
+  background: var(--bg-surface, rgba(255, 255, 255, 0.05));
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   color: var(--text-primary);
@@ -499,8 +502,15 @@
 }
 
 @keyframes dropdownIn {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .dropdownSearch {
@@ -510,7 +520,7 @@
 
 .dropdownInput {
   width: 100%;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
@@ -664,12 +674,19 @@
 }
 
 @keyframes heroFadeIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .predictHeroEyebrow {
-  color: #ff1b91;
+  color: #fdfdfd;
   text-transform: uppercase;
   font-size: 0.8rem;
   font-weight: 800;
@@ -698,11 +715,12 @@
 
 @media (max-width: 767px) {
   .predictHeroCard {
-    background: rgba(10, 14, 26, 0.2);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(10, 14, 26, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     padding: 1.25rem 1.5rem;
   }
+
   .predictHeroTitle {
     font-size: 1.75rem;
   }
