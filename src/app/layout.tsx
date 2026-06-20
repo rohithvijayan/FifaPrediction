@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import AudioPlayer from '@/app/components/AudioPlayer';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: {
@@ -37,6 +38,7 @@ export default function RootLayout({
           <AudioPlayer />
           {children}
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
