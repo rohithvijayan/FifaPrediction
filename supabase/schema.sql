@@ -235,7 +235,7 @@ BEGIN
         pts := max_pts;
       END IF;
 
-    -- Q6: Final Score (exact = 11, no partial points)
+    -- Q6: Final Score (exact = 11, no partial points, team order doesn't matter)
     WHEN 6 THEN
       DECLARE
         u_t1 TEXT := LOWER(TRIM(user_answer->>'team1'));
@@ -248,8 +248,9 @@ BEGIN
         a_s1 INTEGER := (actual_answer->>'team1_score')::INTEGER;
         a_s2 INTEGER := (actual_answer->>'team2_score')::INTEGER;
       BEGIN
-        IF u_t1 = a_t1 AND u_t2 = a_t2 AND u_s1 = a_s1 AND u_s2 = a_s2 THEN
-          pts := max_pts; -- Exact teams in exact order with exact score
+        IF (u_t1 = a_t1 AND u_t2 = a_t2 AND u_s1 = a_s1 AND u_s2 = a_s2) OR
+           (u_t1 = a_t2 AND u_t2 = a_t1 AND u_s1 = a_s2 AND u_s2 = a_s1) THEN
+          pts := max_pts; -- Exact teams (in either order) with exact score
         END IF;
       END;
 

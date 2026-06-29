@@ -69,17 +69,17 @@ export default function RulesPage() {
         <div className={styles.subRules}>
           <div className={styles.subRule}>
             <h3>11 പോയിന്റ് (Full Pts):</h3>
-            <p>ഫൈനൽ കളിക്കുന്ന ടീമുകളെയും അവരുടെ കൃത്യമായ സ്കോറും അതേ ക്രമത്തിൽ പ്രവചിച്ചാൽ മാത്രം.</p>
+            <p>ഫൈനൽ കളിക്കുന്ന ടീമുകളെയും അവരുടെ കൃത്യമായ സ്കോറും പ്രവചിച്ചാൽ മാത്രം. (ടീമുകളുടെ ക്രമം മാറിയാലും ഓരോ ടീമിന്റെയും സ്കോർ കൃത്യമാണെങ്കിൽ പോയിന്റ് ലഭിക്കും).</p>
             <div className={styles.example}>
-              (ഉദാ: &apos;Brazil 2-1 France&apos; എന്ന് പ്രവചിച്ചു, കളി അങ്ങനെ തന്നെ അവസാനിച്ചാൽ).
+              (ഉദാ: &apos;Brazil 2-1 France&apos; എന്ന് പ്രവചിച്ചു, കളി Brazil 2-1 France എന്നോ France 1-2 Brazil എന്നോ അവസാനിച്ചാൽ).
             </div>
           </div>
 
           <div className={styles.subRule}>
             <h3>0 പോയിന്റ് (Zero Pts):</h3>
-            <p>സ്കോറിലോ ടീമുകളുടെ ക്രമത്തിലോ ചെറിയ മാറ്റമുണ്ടായാൽ പോലും പോയിന്റ് ലഭിക്കില്ല.</p>
+            <p>പ്രവചിച്ച സ്കോറിലോ ടീമുകളിലോ വ്യത്യാസമുണ്ടായാൽ പോയിന്റ് ലഭിക്കില്ല.</p>
             <div className={styles.example}>
-              (ഉദാ: ടീമുകളുടെ ഓർഡർ മാറ്റി &apos;France 1-2 Brazil&apos; എന്ന് പ്രവചിച്ചാൽ 0 പോയിന്റ്).
+              (ഉദാ: &apos;Brazil 2-1 France&apos; എന്ന് പ്രവചിച്ചു, കളി Brazil 2-0 France എന്നോ France 0-2 Brazil എന്നോ അവസാനിച്ചാൽ).
             </div>
           </div>
         </div>
