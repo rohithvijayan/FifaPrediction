@@ -3,8 +3,10 @@ import { Inter, Outfit, Noto_Sans_Malayalam, Anek_Malayalam } from 'next/font/go
 import './globals.css';
 import { AuthProvider } from '@/context/AuthContext';
 import AudioPlayer from '@/app/components/AudioPlayer';
-import { Analytics } from '@vercel/analytics/next';
+import { Analytics } from '@vercel/analytics/react';
 import FacebookPixel from '@/app/components/FacebookPixel';
+import Script from 'next/script';
+
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
@@ -38,6 +40,19 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </head>
       <body>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-61JFML5JEQ"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-61JFML5JEQ');
+          `}
+        </Script>
         <AuthProvider>
           <FacebookPixel />
           <AudioPlayer />

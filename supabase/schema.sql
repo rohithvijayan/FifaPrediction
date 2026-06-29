@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS public.users (
   uid UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   email TEXT NOT NULL UNIQUE,
+  favourite_team TEXT, -- Foreign key reference added after teams table is defined
   total_points INTEGER DEFAULT 0,
   is_admin BOOLEAN DEFAULT FALSE,
   registered_at TIMESTAMPTZ DEFAULT NOW()
@@ -42,6 +43,11 @@ CREATE TABLE IF NOT EXISTS public.teams (
   flag_emoji TEXT NOT NULL DEFAULT '🏳️',
   group_name TEXT NOT NULL
 );
+
+-- Add foreign key constraint to users table once teams table is created
+ALTER TABLE public.users 
+ADD CONSTRAINT fk_users_favourite_team 
+FOREIGN KEY (favourite_team) REFERENCES public.teams(code) ON DELETE SET NULL;
 
 ALTER TABLE public.teams ENABLE ROW LEVEL SECURITY;
 
@@ -164,11 +170,12 @@ USING (
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.users (uid, name, email, total_points, is_admin, registered_at)
+  INSERT INTO public.users (uid, name, email, favourite_team, total_points, is_admin, registered_at)
   VALUES (
     new.id,
     COALESCE(new.raw_user_meta_data->>'name', 'Player'),
     new.email,
+    new.raw_user_meta_data->>'favourite_team',
     0,
     FALSE,
     new.created_at
@@ -228,7 +235,7 @@ BEGIN
         pts := max_pts;
       END IF;
 
-    -- Q6: Final Score (exact = 15, no partial points)
+    -- Q6: Final Score (exact = 11, no partial points)
     WHEN 6 THEN
       DECLARE
         u_t1 TEXT := LOWER(TRIM(user_answer->>'team1'));
@@ -342,3 +349,16 @@ DROP TRIGGER IF EXISTS enforce_prediction_lock ON public.predictions;
 CREATE TRIGGER enforce_prediction_lock
   BEFORE INSERT OR UPDATE ON public.predictions
   FOR EACH ROW EXECUTE FUNCTION public.check_prediction_lock();
+
+-- ============================================================
+-- 12. VIEW: Team registration counts for popular teams section
+-- ============================================================
+CREATE OR REPLACE VIEW public.team_registration_counts WITH (security_invoker = true) AS
+SELECT 
+  t.code AS team_code,
+  t.name AS team_name,
+  t.flag_emoji,
+  COUNT(u.uid) AS registration_count
+FROM public.teams t
+JOIN public.users u ON u.favourite_team = t.code
+GROUP BY t.code, t.name, t.flag_emoji;

@@ -24,51 +24,51 @@ export default function RulesPage() {
       <section className={styles.ruleSection}>
         <div className={styles.ruleHeader}>
           <span className={styles.ruleNumber}>1</span>
-          <h2>വേൾഡ് കപ്പ് വിജയി <span className={styles.pointsBadge}>(Max 30 Pts)</span></h2>
+          <h2>വേൾഡ് കപ്പ് വിജയി <span className={styles.pointsBadge}>(Max 50 Pts)</span></h2>
         </div>
-        <p className={styles.ruleText}>ചാമ്പ്യന്മാരെ കൃത്യമായി പ്രവചിച്ചാൽ <strong>30 പോയിന്റ്</strong>. തെറ്റിയാൽ 0.</p>
+        <p className={styles.ruleText}>ചാമ്പ്യന്മാരെ കൃത്യമായി പ്രവചിച്ചാൽ <strong>50 പോയിന്റ്</strong>. തെറ്റിയാൽ 0.</p>
       </section>
 
       <section className={styles.ruleSection}>
         <div className={styles.ruleHeader}>
           <span className={styles.ruleNumber}>2</span>
-          <h2>റണ്ണർ-അപ്പ് <span className={styles.pointsBadge}>(Max 20 Pts)</span></h2>
+          <h2>റണ്ണർ-അപ്പ് <span className={styles.pointsBadge}>(Max 14 Pts)</span></h2>
         </div>
-        <p className={styles.ruleText}>രണ്ടാം സ്ഥാനം കൃത്യമായി പ്രവചിച്ചാൽ <strong>20 പോയിന്റ്</strong>. തെറ്റിയാൽ 0.</p>
+        <p className={styles.ruleText}>രണ്ടാം സ്ഥാനം കൃത്യമായി പ്രവചിച്ചാൽ <strong>14 പോയിന്റ്</strong>. തെറ്റിയാൽ 0.</p>
       </section>
 
       <section className={styles.ruleSection}>
         <div className={styles.ruleHeader}>
           <span className={styles.ruleNumber}>3</span>
-          <h2>മൂന്നാം സ്ഥാനം <span className={styles.pointsBadge}>(Max 15 Pts)</span></h2>
+          <h2>മൂന്നാം സ്ഥാനം <span className={styles.pointsBadge}>(Max 11 Pts)</span></h2>
         </div>
-        <p className={styles.ruleText}>മൂന്നാം സ്ഥാനം കൃത്യമായി പ്രവചിച്ചാൽ <strong>15 പോയിന്റ്</strong>. തെറ്റിയാൽ 0.</p>
+        <p className={styles.ruleText}>മൂന്നാം സ്ഥാനം കൃത്യമായി പ്രവചിച്ചാൽ <strong>11 പോയിന്റ്</strong>. തെറ്റിയാൽ 0.</p>
       </section>
 
       <section className={styles.ruleSection}>
         <div className={styles.ruleHeader}>
           <span className={styles.ruleNumber}>4</span>
-          <h2>ഗോൾഡൻ ബൂട്ട് <span className={styles.pointsBadge}>(Max 10 Pts)</span></h2>
+          <h2>ഗോൾഡൻ ബൂട്ട് <span className={styles.pointsBadge}>(Max 7 Pts)</span></h2>
         </div>
-        <p className={styles.ruleText}>ടോപ്പ് സ്കോററെ കൃത്യമായി പ്രവചിച്ചാൽ <strong>10 പോയിന്റ്</strong>. തെറ്റിയാൽ 0.</p>
+        <p className={styles.ruleText}>ടോപ്പ് സ്കോററെ കൃത്യമായി പ്രവചിച്ചാൽ <strong>7 പോയിന്റ്</strong>. തെറ്റിയാൽ 0.</p>
       </section>
 
       <section className={styles.ruleSection}>
         <div className={styles.ruleHeader}>
           <span className={styles.ruleNumber}>5</span>
-          <h2>ഗോൾഡൻ ഗ്ലൗവ്  <span className={styles.pointsBadge}>(Max 10 Pts)</span></h2>
+          <h2>ഗോൾഡൻ ഗ്ലൗവ്  <span className={styles.pointsBadge}>(Max 7 Pts)</span></h2>
         </div>
-        <p className={styles.ruleText}>മികച്ച ഗോൾകീപ്പറെ കൃത്യമായി പ്രവചിച്ചാൽ <strong>10 പോയിന്റ്</strong>. തെറ്റിയാൽ 0.</p>
+        <p className={styles.ruleText}>മികച്ച ഗോൾകീപ്പറെ കൃത്യമായി പ്രവചിച്ചാൽ <strong>7 പോയിന്റ്</strong>. തെറ്റിയാൽ 0.</p>
       </section>
 
       <section className={styles.ruleSection}>
         <div className={styles.ruleHeader}>
           <span className={styles.ruleNumber}>🏆</span>
-          <h2>6. ഫൈനൽ മാച്ച് സ്കോർ <span className={styles.pointsBadge}>(Max 15 Pts)</span></h2>
+          <h2>6. ഫൈനൽ മാച്ച് സ്കോർ <span className={styles.pointsBadge}>(Max 11 Pts)</span></h2>
         </div>
         <div className={styles.subRules}>
           <div className={styles.subRule}>
-            <h3>15 പോയിന്റ് (Full Pts):</h3>
+            <h3>11 പോയിന്റ് (Full Pts):</h3>
             <p>ഫൈനൽ കളിക്കുന്ന ടീമുകളെയും അവരുടെ കൃത്യമായ സ്കോറും അതേ ക്രമത്തിൽ പ്രവചിച്ചാൽ മാത്രം.</p>
             <div className={styles.example}>
               (ഉദാ: &apos;Brazil 2-1 France&apos; എന്ന് പ്രവചിച്ചു, കളി അങ്ങനെ തന്നെ അവസാനിച്ചാൽ).

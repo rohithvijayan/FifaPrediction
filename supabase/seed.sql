@@ -80,13 +80,13 @@ ON CONFLICT (code) DO NOTHING;
 -- Seed Data: 6 Prediction Questions
 -- ============================================================
 INSERT INTO public.questions (question_number, title, description, max_points, lock_date) VALUES
-(1, 'World Cup Winner', 'Predict which team will lift the FIFA World Cup 2026 trophy', 30, '2026-07-19T12:00:00+05:30'),
-(2, 'Runner-Up', 'Predict the team that will finish in 2nd place', 20, '2026-07-19T12:00:00+05:30'),
-(3, 'Third-Place Team', 'Predict the team that will finish in 3rd place', 15, '2026-07-19T12:00:00+05:30'),
-(4, 'Golden Boot Winner', 'Predict the top goal scorer of the tournament', 10, '2026-07-19T12:00:00+05:30'),
-(5, 'Golden Glove Winner', 'Predict the best goalkeeper of the tournament', 10, '2026-07-19T12:00:00+05:30'),
-(6, 'Final Match Score', 'Predict the exact score of the Final match (After 90 Minutes)', 15, '2026-07-19T12:00:00+05:30')
-ON CONFLICT (question_number) DO NOTHING;
+(1, 'World Cup Winner', 'Predict which team will lift the FIFA World Cup 2026 trophy', 50, '2026-07-19T12:00:00+05:30'),
+(2, 'Runner-Up', 'Predict the team that will finish in 2nd place', 14, '2026-07-19T12:00:00+05:30'),
+(3, 'Third-Place Team', 'Predict the team that will finish in 3rd place', 11, '2026-07-19T12:00:00+05:30'),
+(4, 'Golden Boot Winner', 'Predict the top goal scorer of the tournament', 7, '2026-07-19T12:00:00+05:30'),
+(5, 'Golden Glove Winner', 'Predict the best goalkeeper of the tournament', 7, '2026-07-19T12:00:00+05:30'),
+(6, 'Final Match Score', 'Predict the exact score of the Final match (After 90 Minutes)', 11, '2026-07-19T12:00:00+05:30')
+ON CONFLICT (question_number) DO UPDATE SET max_points = EXCLUDED.max_points;
 
 
 -- ============================================================
