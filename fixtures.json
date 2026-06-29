@@ -507,11 +507,164 @@
             "venue": "Arlington"
         },
         {
-            "matchNumber": "73-88",
+            "matchNumber": 73,
             "stage": "Round of 32",
-            "date": "June 29 - July 4, 2026",
-            "time": "Late night / early morning IST",
-            "fixture": "TBD"
+            "date": "2026-06-29",
+            "time": "12:30 AM",
+            "fixture": "South Africa vs Canada",
+            "venue": "Los Angeles Stadium",
+            "status": "Final",
+            "result": "South Africa 0 – 1 Canada"
+        },
+        {
+            "matchNumber": 74,
+            "stage": "Round of 32",
+            "date": "2026-06-29",
+            "time": "10:30 PM",
+            "fixture": "Brazil vs Japan",
+            "venue": "Houston Stadium",
+            "status": "Upcoming",
+            "result": null
+        },
+        {
+            "matchNumber": 75,
+            "stage": "Round of 32",
+            "date": "2026-06-30",
+            "time": "02:00 AM",
+            "fixture": "Germany vs Paraguay",
+            "venue": "Boston Stadium",
+            "status": "Upcoming",
+            "result": null
+        },
+        {
+            "matchNumber": 76,
+            "stage": "Round of 32",
+            "date": "2026-06-30",
+            "time": "06:30 AM",
+            "fixture": "Netherlands vs Morocco",
+            "venue": "Monterrey Stadium",
+            "status": "Upcoming",
+            "result": null
+        },
+        {
+            "matchNumber": 77,
+            "stage": "Round of 32",
+            "date": "2026-06-30",
+            "time": "10:30 PM",
+            "fixture": "Ivory Coast vs Norway",
+            "venue": "Dallas Stadium",
+            "status": "Upcoming",
+            "result": null
+        },
+        {
+            "matchNumber": 78,
+            "stage": "Round of 32",
+            "date": "2026-07-01",
+            "time": "02:30 AM",
+            "fixture": "France vs Sweden",
+            "venue": "New York New Jersey Stadium",
+            "status": "Upcoming",
+            "result": null
+        },
+        {
+            "matchNumber": 79,
+            "stage": "Round of 32",
+            "date": "2026-07-01",
+            "time": "06:30 AM",
+            "fixture": "Mexico vs Ecuador",
+            "venue": "Mexico City Stadium",
+            "status": "Upcoming",
+            "result": null
+        },
+        {
+            "matchNumber": 80,
+            "stage": "Round of 32",
+            "date": "2026-07-01",
+            "time": "09:30 PM",
+            "fixture": "England vs DR Congo",
+            "venue": "Atlanta Stadium",
+            "status": "Upcoming",
+            "result": null
+        },
+        {
+            "matchNumber": 81,
+            "stage": "Round of 32",
+            "date": "2026-07-02",
+            "time": "01:30 AM",
+            "fixture": "Belgium vs Senegal",
+            "venue": "Seattle Stadium",
+            "status": "Upcoming",
+            "result": null
+        },
+        {
+            "matchNumber": 82,
+            "stage": "Round of 32",
+            "date": "2026-07-02",
+            "time": "05:30 AM",
+            "fixture": "United States vs Bosnia and Herzegovina",
+            "venue": "San Francisco Bay Area Stadium",
+            "status": "Upcoming",
+            "result": null
+        },
+        {
+            "matchNumber": 83,
+            "stage": "Round of 32",
+            "date": "2026-07-03",
+            "time": "12:30 AM",
+            "fixture": "Spain vs Austria",
+            "venue": "Los Angeles Stadium",
+            "status": "Upcoming",
+            "result": null
+        },
+        {
+            "matchNumber": 84,
+            "stage": "Round of 32",
+            "date": "2026-07-03",
+            "time": "04:30 AM",
+            "fixture": "Portugal vs Croatia",
+            "venue": "Toronto Stadium",
+            "status": "Upcoming",
+            "result": null
+        },
+        {
+            "matchNumber": 85,
+            "stage": "Round of 32",
+            "date": "2026-07-03",
+            "time": "08:30 AM",
+            "fixture": "Switzerland vs Algeria",
+            "venue": "BC Place Vancouver",
+            "status": "Upcoming",
+            "result": null
+        },
+        {
+            "matchNumber": 86,
+            "stage": "Round of 32",
+            "date": "2026-07-03",
+            "time": "11:30 PM",
+            "fixture": "Australia vs Egypt",
+            "venue": "Dallas Stadium",
+            "status": "Upcoming",
+            "result": null
+        },
+        {
+            "matchNumber": 87,
+            "stage": "Round of 32",
+            "date": "2026-07-04",
+            "time": "03:30 AM",
+            "fixture": "Argentina vs Cape Verde",
+            "venue": "Miami Stadium",
+            "status": "Upcoming",
+            "result": null
+        },
+        {
+            "matchNumber": 88,
+            "stage": "Round of 32",
+            "date": "2026-07-04",
+            "time": "07:00 AM",
+            "fixture": "Colombia vs Ghana",
+            "venue": "Kansas City Stadium",
+            "status": "Upcoming",
+            "result": null
         },
         {
             "matchNumber": "89-96",

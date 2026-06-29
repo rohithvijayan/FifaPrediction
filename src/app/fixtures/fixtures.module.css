@@ -316,6 +316,40 @@
   font-size: 1.125rem;
 }
 
+/* ── Score & Final Badges ──────────────────────────────────── */
+.teamScore {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #00d4aa;
+  margin-left: 0.75rem;
+  background: rgba(0, 212, 170, 0.1);
+  padding: 0.1rem 0.5rem;
+  border-radius: 4px;
+}
+
+.teamScoreRight {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #00d4aa;
+  margin-right: 0.75rem;
+  background: rgba(0, 212, 170, 0.1);
+  padding: 0.1rem 0.5rem;
+  border-radius: 4px;
+}
+
+.finalBadge {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  padding: 0.2rem 0.6rem;
+  border-radius: 1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
 /* ── Responsive ────────────────────────────────────────────── */
 @media (max-width: 520px) {
   .matchRow {
@@ -337,3 +371,4 @@
     padding: 0.18rem 0.5rem;
   }
 }
+

@@ -6,6 +6,17 @@ import Navbar from '../components/Navbar';
 import styles from './fixtures.module.css';
 import fixturesData from '../../../fixtures.json';
 
+interface FixtureItem {
+  matchNumber: number | string;
+  stage?: string;
+  date: string;
+  time: string;
+  fixture: string;
+  venue?: string;
+  status?: string;
+  result?: string | null;
+}
+
 // ── Country codes map for all 48 WC 2026 teams ──────────────────────────────────
 const TEAM_COUNTRY_CODES: Record<string, string> = {
   'Mexico': 'MX',
@@ -15,6 +26,7 @@ const TEAM_COUNTRY_CODES: Record<string, string> = {
   'Canada': 'CA',
   'Bosnia and Herzegovina': 'BA',
   'USA': 'US',
+  'United States': 'US',
   'Paraguay': 'PY',
   'Qatar': 'QA',
   'Switzerland': 'CH',
@@ -58,6 +70,18 @@ const TEAM_COUNTRY_CODES: Record<string, string> = {
   'Colombia': 'CO',
 };
 
+const parseScores = (result: string | null | undefined, team1: string, team2: string) => {
+  if (!result) return { score1: null, score2: null };
+  let scorePart = result;
+  scorePart = scorePart.replace(team1.trim(), '');
+  scorePart = scorePart.replace(team2.trim(), '');
+  const scores = scorePart.match(/\d+/g);
+  if (scores && scores.length === 2) {
+    return { score1: scores[0], score2: scores[1] };
+  }
+  return { score1: null, score2: null };
+};
+
 export default function FixturesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'group' | 'round32_16' | 'quarter_semi' | 'finals'>('all');
@@ -80,7 +104,7 @@ export default function FixturesPage() {
 
   // Filter and group fixtures
   const groupedFixtures = useMemo(() => {
-    const filtered = fixturesData.fixtures.filter(match => {
+    const filtered = (fixturesData.fixtures as FixtureItem[]).filter(match => {
       // Search filter
       const matchesSearch = match.fixture.toLowerCase().includes(searchQuery.toLowerCase());
       if (!matchesSearch) return false;
@@ -102,7 +126,7 @@ export default function FixturesPage() {
       return true;
     });
 
-    const groups: Record<string, typeof fixturesData.fixtures> = {};
+    const groups: Record<string, FixtureItem[]> = {};
     filtered.forEach(match => {
       if (!groups[match.date]) {
         groups[match.date] = [];
@@ -189,9 +213,14 @@ export default function FixturesPage() {
               <h2 className={styles.dateHeader}>{formatDate(date)}</h2>
 
               <div className={styles.matchesList}>
-                {matches.map((match, index) => {
+                {matches.map((match: FixtureItem, index) => {
                   const teams = match.fixture.split(' vs ');
                   const hasTeams = teams.length === 2;
+
+                  const isFinal = match.status === 'Final';
+                  const { score1, score2 } = isFinal && match.result
+                    ? parseScores(match.result, teams[0], teams[1])
+                    : { score1: null, score2: null };
 
                   return (
                     <div key={index} className={styles.matchRow}>
@@ -201,16 +230,24 @@ export default function FixturesPage() {
                           <div className={styles.teamBlock}>
                             {renderFlag(teams[0])}
                             <span className={styles.teamName}>{teams[0]}</span>
+                            {score1 !== null && <span className={styles.teamScore}>{score1}</span>}
                           </div>
 
                           {/* Centre: time + VS */}
                           <div className={styles.matchCentre}>
-                            <span className={styles.timeBadge}>{match.time}</span>
-                            <span className={styles.vsLabel}>VS</span>
+                            {isFinal ? (
+                              <span className={styles.finalBadge}>Final</span>
+                            ) : (
+                              <>
+                                <span className={styles.timeBadge}>{match.time}</span>
+                                <span className={styles.vsLabel}>VS</span>
+                              </>
+                            )}
                           </div>
 
                           {/* Right team */}
                           <div className={`${styles.teamBlock} ${styles.teamBlockRight}`}>
+                            {score2 !== null && <span className={styles.teamScoreRight}>{score2}</span>}
                             <span className={styles.teamName}>{teams[1]}</span>
                             {renderFlag(teams[1])}
                           </div>
