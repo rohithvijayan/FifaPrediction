@@ -42,6 +42,7 @@ const COUNTRIES = [
   { code: 'KW', name: 'Kuwait', dial: '+965', digits: 8 },
   { code: 'BH', name: 'Bahrain', dial: '+973', digits: 8 },
   { code: 'OM', name: 'Oman', dial: '+968', digits: 8 },
+  { code: 'NO', name: 'Norway', dial: '+47', digits: 8 },
 ];
 
 export default function RegisterPage() {
@@ -142,27 +143,42 @@ export default function RegisterPage() {
     if (name.trim().length < 2) {
       setError('Name must be at least 2 characters.'); return;
     }
+    if (!email.trim()) {
+      setError('Email is required.'); return;
+    }
     if (password.length < 6) {
       setError('Password must be at least 6 characters.'); return;
     }
-    if (phone && phone.length !== selectedCountry.digits) {
+    if (!phone) {
+      setError('Phone number is required.'); return;
+    }
+    if (phone.length !== selectedCountry.digits) {
       setError(`Phone number must be exactly ${selectedCountry.digits} digits for ${selectedCountry.name}.`); return;
     }
-    if (pincode && !/^\d{4,10}$/.test(pincode)) {
+    if (!district) {
+      setError('District selection is required.'); return;
+    }
+    if (!pincode) {
+      setError('Pincode is required.'); return;
+    }
+    if (!/^\d{4,10}$/.test(pincode)) {
       setError('Pincode must be 4–10 digits.'); return;
+    }
+    if (!favouriteTeam) {
+      setError('Favourite Team selection is required.'); return;
     }
 
     setLoading(true);
     try {
-      const fullPhone = phone ? `${selectedCountry.dial}${phone}` : undefined;
+      const fullPhone = `${selectedCountry.dial}${phone}`;
       await signUp(
         name.trim(),
         email,
         password,
         fullPhone,
-        district.trim() || undefined,
-        pincode || undefined,
-        favouriteTeam || undefined
+        district,
+        pincode,
+        favouriteTeam
       );
       const fbq = typeof window !== 'undefined' ? (window as unknown as { fbq?: (event: string, action: string) => void }).fbq : undefined;
       if (fbq) {
@@ -246,7 +262,7 @@ export default function RegisterPage() {
           {/* ── Phone Number ─────────────────────────────── */}
           <div className={styles.inputGroup}>
             <label htmlFor="phone" className="input-label">
-              Phone Number <span className={styles.optional}>(optional)</span>
+              Phone Number
             </label>
             <div className={styles.phoneRow}>
               {/* Country selector */}
@@ -321,6 +337,7 @@ export default function RegisterPage() {
                 maxLength={selectedCountry.digits}
                 autoComplete="tel-national"
                 inputMode="numeric"
+                required
               />
             </div>
             {phone.length > 0 && (
@@ -334,7 +351,7 @@ export default function RegisterPage() {
           <div className={styles.rowGroup}>
             <div className={styles.inputGroup}>
               <label htmlFor="district" className="input-label">
-                District <span className={styles.optional}>(optional)</span>
+                District
               </label>
               <select
                 id="district"
@@ -345,6 +362,7 @@ export default function RegisterPage() {
                   backgroundColor: 'var(--bg-input)',
                   color: district ? 'var(--text-primary)' : 'var(--text-muted)',
                 }}
+                required
               >
                 <option value="" style={{ color: 'var(--text-muted)' }}>Select district...</option>
                 {[
@@ -361,7 +379,7 @@ export default function RegisterPage() {
 
             <div className={styles.inputGroup}>
               <label htmlFor="pincode" className="input-label">
-                Pincode <span className={styles.optional}>(optional)</span>
+                Pincode
               </label>
               <input
                 id="pincode"
@@ -373,6 +391,7 @@ export default function RegisterPage() {
                 inputMode="numeric"
                 maxLength={10}
                 autoComplete="postal-code"
+                required
               />
             </div>
           </div>
@@ -380,7 +399,7 @@ export default function RegisterPage() {
           {/* ── Favourite Team ─────────────────────────── */}
           <div className={styles.inputGroup}>
             <label htmlFor="favouriteTeam" className="input-label">
-              Favourite Team <span className={styles.optional}>(optional)</span>
+              Favourite Team
             </label>
             <select
               id="favouriteTeam"
@@ -391,6 +410,7 @@ export default function RegisterPage() {
                 backgroundColor: 'var(--bg-input)',
                 color: favouriteTeam ? 'var(--text-primary)' : 'var(--text-muted)',
               }}
+              required
             >
               <option value="" style={{ color: 'var(--text-muted)' }}>Select your favourite team…</option>
               {teams.map((t) => (

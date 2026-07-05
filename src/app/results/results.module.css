@@ -396,3 +396,40 @@
     max-width: 90px;
   }
 }
+
+/* ── View Selector ─────────────────────────────────────────── */
+.viewSelector {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.viewBtn {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 2rem;
+  padding: 0.6rem 1.5rem;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.viewBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.viewBtn.activeViewBtn {
+  background: linear-gradient(135deg, #00b894 0%, #00f2fe 100%);
+  color: #0c0a25;
+  border-color: transparent;
+  box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
+}

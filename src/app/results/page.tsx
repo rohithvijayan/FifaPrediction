@@ -75,16 +75,32 @@ interface StandingRow {
   updated_at: string;
 }
 
+interface GoldenBootRow {
+  id: number;
+  rank: number;
+  player_name: string;
+  team_code: string;
+  goals: number;
+  assists: number;
+  minutes_played: number;
+  position: string;
+  updated_at: string;
+}
+
 export default function ResultsPage() {
   const [standings, setStandings] = useState<StandingRow[]>([]);
+  const [goldenBoot, setGoldenBoot] = useState<GoldenBootRow[]>([]);
+  const [activeView, setActiveView] = useState<'standings' | 'golden_boot'>('standings');
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeGroupTab, setActiveGroupTab] = useState<string>('ALL');
 
   useEffect(() => {
-    async function fetchStandings() {
+    async function fetchData() {
       try {
-        const { data, error } = await supabase
+        setLoading(true);
+        // Fetch standings
+        const { data: standingsData, error: standingsErr } = await supabase
           .from('group_standings')
           .select('*')
           .order('group_name', { ascending: true })
@@ -93,18 +109,28 @@ export default function ResultsPage() {
           .order('goals_for', { ascending: false })
           .order('team_name', { ascending: true });
 
-        if (error) throw error;
-        if (data) {
-          setStandings(data);
+        if (standingsErr) throw standingsErr;
+        if (standingsData) {
+          setStandings(standingsData);
+        }
+
+        // Fetch golden boot stats
+        const { data: bootData, error: bootErr } = await supabase
+          .from('golden_boot_standings')
+          .select('*')
+          .order('rank', { ascending: true });
+
+        if (!bootErr && bootData) {
+          setGoldenBoot(bootData);
         }
       } catch (err) {
-        console.error('Error fetching standings:', err);
+        console.error('Error fetching standings and golden boot:', err);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchStandings();
+    fetchData();
   }, []);
 
   const renderFlag = (teamCode: string) => {
@@ -206,110 +232,196 @@ export default function ResultsPage() {
       </div>
 
       <main className={styles.main}>
-        <div className={styles.headerControls}>
-          <div className={styles.searchContainer}>
-            <input
-              type="text"
-              placeholder="Search for a team..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={styles.searchInput}
-            />
-          </div>
-
-          <div className={styles.tabContainer}>
-            {groupTabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveGroupTab(tab)}
-                className={`${styles.tabBtn} ${activeGroupTab === tab ? styles.activeTab : ''}`}
-              >
-                {tab === 'ALL' ? 'All Groups' : `Group ${tab}`}
-              </button>
-            ))}
-          </div>
+        {/* Main View Selector */}
+        <div className={styles.viewSelector}>
+          <button
+            onClick={() => {
+              setActiveView('standings');
+              setSearchQuery('');
+            }}
+            className={`${styles.viewBtn} ${activeView === 'standings' ? styles.activeViewBtn : ''}`}
+          >
+            ⚽ Group Standings
+          </button>
+          <button
+            onClick={() => {
+              setActiveView('golden_boot');
+              setSearchQuery('');
+            }}
+            className={`${styles.viewBtn} ${activeView === 'golden_boot' ? styles.activeViewBtn : ''}`}
+          >
+            🏆 Golden Boot
+          </button>
         </div>
 
-        {loading ? (
-          <div className={styles.loadingContainer}>
-            <div className={styles.spinner}></div>
-            <p className="anek-malayalam">വിവരങ്ങൾ ശേഖരിക്കുന്നു...</p>
-          </div>
-        ) : Object.keys(groupedData).length > 0 ? (
+        {activeView === 'standings' ? (
           <>
-            {lastUpdatedText && (
-              <div style={{ textAlign: 'right', fontSize: '0.8rem', color: '#6b7280', marginBottom: '1.5rem', fontWeight: 600 }}>
-                Last updated: {lastUpdatedText}
+            <div className={styles.headerControls}>
+              <div className={styles.searchContainer}>
+                <input
+                  type="text"
+                  placeholder="Search for a team..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className={styles.searchInput}
+                />
+              </div>
+
+              <div className={styles.tabContainer}>
+                {groupTabs.map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveGroupTab(tab)}
+                    className={`${styles.tabBtn} ${activeGroupTab === tab ? styles.activeTab : ''}`}
+                  >
+                    {tab === 'ALL' ? 'All Groups' : `Group ${tab}`}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {loading ? (
+              <div className={styles.loadingContainer}>
+                <div className={styles.spinner}></div>
+                <p className="anek-malayalam">വിവരങ്ങൾ ശേഖരിക്കുന്നു...</p>
+              </div>
+            ) : Object.keys(groupedData).length > 0 ? (
+              <>
+                {lastUpdatedText && (
+                  <div style={{ textAlign: 'right', fontSize: '0.8rem', color: '#6b7280', marginBottom: '1.5rem', fontWeight: 600 }}>
+                    Last updated: {lastUpdatedText}
+                  </div>
+                )}
+                <div className={styles.standingsGrid}>
+                  {Object.entries(groupedData).map(([groupName, teams]) => (
+                    <div key={groupName} className={styles.groupCard}>
+                      <div className={styles.groupHeader}>
+                        <h2 className={`${styles.groupTitle} anek-malayalam`}>{groupName}</h2>
+                        <span className={styles.groupBadge}>Stage 1</span>
+                      </div>
+
+                      <div className={styles.tableContainer}>
+                        <table className={styles.standingsTable}>
+                          <thead>
+                            <tr>
+                              <th className={styles.posCol}>#</th>
+                              <th className={styles.teamCol}>Team</th>
+                              <th className={styles.statsCol}>P</th>
+                              <th className={styles.statsCol}>W</th>
+                              <th className={styles.statsCol}>D</th>
+                              <th className={styles.statsCol}>L</th>
+                              <th className={styles.gdCol}>GD</th>
+                              <th className={styles.ptsCol}>Pts</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {teams.map((team, idx) => {
+                              const position = idx + 1;
+                              const posClass = position === 1 ? styles.pos1 : position === 2 ? styles.pos2 : '';
+                              const isHighlighted = searchQuery.trim() !== '' && (
+                                team.team_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                team.team_code.toLowerCase().includes(searchQuery.toLowerCase())
+                              );
+
+                              return (
+                                <tr 
+                                  key={team.id} 
+                                  className={`${styles.tableRow} ${posClass} ${isHighlighted ? styles.highlightRow : ''}`}
+                                >
+                                  <td className={styles.posCol}>{position}</td>
+                                  <td className={styles.teamCol}>
+                                    <div className={styles.teamCell}>
+                                      {renderFlag(team.team_code)}
+                                      <span className={styles.teamNameText} title={team.team_name}>
+                                        {team.team_name}
+                                      </span>
+                                      <span className={styles.teamCodeText}>{team.team_code}</span>
+                                    </div>
+                                  </td>
+                                  <td className={styles.statsCol}>{team.played}</td>
+                                  <td className={styles.statsCol}>{team.won}</td>
+                                  <td className={styles.statsCol}>{team.drawn}</td>
+                                  <td className={styles.statsCol}>{team.lost}</td>
+                                  <td className={styles.gdCol}>{team.goal_difference > 0 ? `+${team.goal_difference}` : team.goal_difference}</td>
+                                  <td className={styles.ptsCol}>{team.points}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className={styles.noResults}>
+                <p className="anek-malayalam">ഗ്രൂപ്പ് വിവരങ്ങൾ ലഭ്യമല്ല.</p>
+                <p style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                  Standings will be updated once matches begin!
+                </p>
               </div>
             )}
-            <div className={styles.standingsGrid}>
-              {Object.entries(groupedData).map(([groupName, teams]) => (
-                <div key={groupName} className={styles.groupCard}>
-                  <div className={styles.groupHeader}>
-                    <h2 className={`${styles.groupTitle} anek-malayalam`}>{groupName}</h2>
-                    <span className={styles.groupBadge}>Stage 1</span>
-                  </div>
-
-                  <div className={styles.tableContainer}>
-                    <table className={styles.standingsTable}>
-                      <thead>
-                        <tr>
-                          <th className={styles.posCol}>#</th>
-                          <th className={styles.teamCol}>Team</th>
-                          <th className={styles.statsCol}>P</th>
-                          <th className={styles.statsCol}>W</th>
-                          <th className={styles.statsCol}>D</th>
-                          <th className={styles.statsCol}>L</th>
-                          <th className={styles.gdCol}>GD</th>
-                          <th className={styles.ptsCol}>Pts</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {teams.map((team, idx) => {
-                          const position = idx + 1;
-                          const posClass = position === 1 ? styles.pos1 : position === 2 ? styles.pos2 : '';
-                          const isHighlighted = searchQuery.trim() !== '' && (
-                            team.team_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            team.team_code.toLowerCase().includes(searchQuery.toLowerCase())
-                          );
-
-                          return (
-                            <tr 
-                              key={team.id} 
-                              className={`${styles.tableRow} ${posClass} ${isHighlighted ? styles.highlightRow : ''}`}
-                            >
-                              <td className={styles.posCol}>{position}</td>
-                              <td className={styles.teamCol}>
-                                <div className={styles.teamCell}>
-                                  {renderFlag(team.team_code)}
-                                  <span className={styles.teamNameText} title={team.team_name}>
-                                    {team.team_name}
-                                  </span>
-                                  <span className={styles.teamCodeText}>{team.team_code}</span>
-                                </div>
-                              </td>
-                              <td className={styles.statsCol}>{team.played}</td>
-                              <td className={styles.statsCol}>{team.won}</td>
-                              <td className={styles.statsCol}>{team.drawn}</td>
-                              <td className={styles.statsCol}>{team.lost}</td>
-                              <td className={styles.gdCol}>{team.goal_difference > 0 ? `+${team.goal_difference}` : team.goal_difference}</td>
-                              <td className={styles.ptsCol}>{team.points}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ))}
-            </div>
           </>
         ) : (
-          <div className={styles.noResults}>
-            <p className="anek-malayalam">ഗ്രൂപ്പ് വിവരങ്ങൾ ലഭ്യമല്ല.</p>
-            <p style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.5rem' }}>
-              Standings will be updated once matches begin!
-            </p>
+          /* Render Golden Boot standings */
+          <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
+            {loading ? (
+              <div className={styles.loadingContainer}>
+                <div className={styles.spinner}></div>
+                <p className="anek-malayalam">വിവരങ്ങൾ ശേഖരിക്കുന്നു...</p>
+              </div>
+            ) : goldenBoot.length > 0 ? (
+              <div className={styles.groupCard} style={{ padding: '2rem' }}>
+                <div className={styles.groupHeader}>
+                  <h2 className={`${styles.groupTitle} anek-malayalam`}>adidas Golden Boot Standings</h2>
+                  <span className={styles.groupBadge} style={{ background: 'rgba(234, 179, 8, 0.1)', color: '#eab308' }}>Top Scorers</span>
+                </div>
+                <div className={styles.tableContainer}>
+                  <table className={styles.standingsTable}>
+                    <thead>
+                      <tr>
+                        <th className={styles.posCol}>Rank</th>
+                        <th>Player</th>
+                        <th style={{ textAlign: 'center' }}>Team</th>
+                        <th style={{ textAlign: 'center' }}>Goals</th>
+                        <th style={{ textAlign: 'center' }}>Assists</th>
+                        <th style={{ textAlign: 'center' }}>Mins Played</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {goldenBoot.map((player) => (
+                        <tr key={player.id} className={styles.tableRow}>
+                          <td className={styles.posCol} style={{ color: '#eab308', fontWeight: 'bold' }}>#{player.rank}</td>
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span style={{ fontWeight: 700, color: '#ffffff' }}>{player.player_name}</span>
+                              <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{player.position}</span>
+                            </div>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                              {renderFlag(player.team_code)}
+                              <span style={{ fontWeight: 600 }}>{player.team_code}</span>
+                            </div>
+                          </td>
+                          <td style={{ textAlign: 'center', fontWeight: 'bold', color: '#eab308', fontSize: '1.05rem' }}>{player.goals}</td>
+                          <td style={{ textAlign: 'center' }}>{player.assists}</td>
+                          <td style={{ textAlign: 'center', color: '#9ca3af' }}>{player.minutes_played}&apos;</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.noResults}>
+                <p className="anek-malayalam">ഗോൾഡൻ ബൂട്ട് വിവരങ്ങൾ ലഭ്യമല്ല.</p>
+                <p style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                  Golden Boot standings will be updated live as goals are scored!
+                </p>
+              </div>
+            )}
           </div>
         )}
       </main>

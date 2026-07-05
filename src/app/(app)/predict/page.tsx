@@ -40,6 +40,7 @@ const COUNTRIES = [
   { code: 'KW', name: 'Kuwait', dial: '+965', digits: 8 },
   { code: 'BH', name: 'Bahrain', dial: '+973', digits: 8 },
   { code: 'OM', name: 'Oman', dial: '+968', digits: 8 },
+  { code: 'NO', name: 'Norway', dial: '+47', digits: 8 },
 ];
 
 // SVG Icons for each question

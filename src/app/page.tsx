@@ -4,6 +4,18 @@ import Navbar from './components/Navbar';
 import styles from './page.module.css';
 import { createClient } from '@/lib/supabase/server';
 
+const TEAM_COUNTRY_CODES: Record<string, string> = {
+  'MAR': 'ma', 'CRO': 'hr', 'SCO': 'gb-sct', 'PER': 'pe', 'ESP': 'es', 'ECU': 'ec',
+  'PAR': 'py', 'UZB': 'uz', 'ARG': 'ar', 'EGY': 'eg', 'IDN': 'id', 'BIH': 'ba',
+  'FRA': 'fr', 'COL': 'co', 'KSA': 'sa', 'BHR': 'bh', 'BRA': 'br', 'AUS': 'au',
+  'TUN': 'tn', 'HON': 'hn', 'POR': 'pt', 'MEX': 'mx', 'TUR': 'tr', 'KEN': 'ke',
+  'GER': 'de', 'CHI': 'cl', 'JPN': 'jp', 'CAN': 'ca', 'ENG': 'gb-eng', 'SEN': 'sn',
+  'HAI': 'ht', 'WAL': 'gb-wls', 'URU': 'uy', 'IRN': 'ir', 'KOR': 'kr', 'TRI': 'tt',
+  'BEL': 'be', 'NGA': 'ng', 'CRC': 'cr', 'ALB': 'al', 'NED': 'nl', 'CMR': 'cm',
+  'PAN': 'pa', 'SRB': 'rs', 'USA': 'us', 'BOL': 'bo', 'ITA': 'it', 'SVN': 'si',
+  'NOR': 'no'
+};
+
 interface TeamRegistration {
   team_code: string;
   team_name: string;
@@ -11,8 +23,21 @@ interface TeamRegistration {
   registration_count: number;
 }
 
+interface GoldenBootPlayer {
+  id: number;
+  rank: number;
+  player_name: string;
+  team_code: string;
+  goals: number;
+  assists: number;
+  minutes_played: number;
+  position: string;
+}
+
 export default async function LandingPage() {
   const supabase = createClient();
+  
+  // Fetch popular teams
   const { data: topTeams } = await supabase
     .from('team_registration_counts')
     .select('*')
@@ -20,6 +45,21 @@ export default async function LandingPage() {
     .limit(3);
 
   const displayTeams = (topTeams || []) as unknown as TeamRegistration[];
+
+  // Fetch Golden Boot top players
+  let goldenBoot: GoldenBootPlayer[] = [];
+  try {
+    const { data: bootData } = await supabase
+      .from('golden_boot_standings')
+      .select('*')
+      .order('rank', { ascending: true })
+      .limit(5);
+    if (bootData) {
+      goldenBoot = bootData as unknown as GoldenBootPlayer[];
+    }
+  } catch (err) {
+    console.error('Error fetching golden boot standings:', err);
+  }
   return (
     <div className={styles.wrapper}>
       <Navbar />
@@ -130,6 +170,68 @@ export default async function LandingPage() {
                 )}
               </div>
             </div>
+
+            {/* adidas Golden Boot Leaderboard */}
+            <div className={styles.topTeamsSection}>
+              <div className={styles.topTeamsHeader}>
+                <span className={styles.hotBadge} style={{ background: 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)' }}>🏆 GOLDEN BOOT</span>
+                <h3>adidas Golden Boot</h3>
+                <p>Top goalscorers of the FIFA World Cup 2026</p>
+              </div>
+
+              {goldenBoot.length > 0 ? (
+                <div className={styles.bootTableContainer}>
+                  <table className={styles.bootTable}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: 'left', paddingLeft: '1.5rem' }}>Rank</th>
+                        <th style={{ textAlign: 'left' }}>Player</th>
+                        <th>Team</th>
+                        <th>Goals</th>
+                        <th>Assists</th>
+                        <th>Mins</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {goldenBoot.map((player) => (
+                        <tr key={player.id}>
+                          <td style={{ textAlign: 'left', paddingLeft: '1.5rem', fontWeight: 700, color: '#9ca3af' }}>#{player.rank}</td>
+                          <td style={{ textAlign: 'left' }}>
+                            <div>
+                              <strong style={{ display: 'block', fontSize: '0.95rem' }}>{player.player_name}</strong>
+                              <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>{player.position}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                              {TEAM_COUNTRY_CODES[player.team_code] ? (
+                                <img
+                                  src={`https://flagcdn.com/w40/${TEAM_COUNTRY_CODES[player.team_code].toLowerCase()}.png`}
+                                  alt={player.team_code}
+                                  style={{ width: '20px', height: 'auto', borderRadius: '2px', border: '1px solid rgba(255,255,255,0.1)' }}
+                                />
+                              ) : (
+                                <span>🏳️</span>
+                              )}
+                              <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{player.team_code}</span>
+                            </div>
+                          </td>
+                          <td style={{ color: '#eab308', fontWeight: '800', fontSize: '1rem' }}>{player.goals}</td>
+                          <td style={{ fontWeight: 600 }}>{player.assists}</td>
+                          <td style={{ color: '#9ca3af', fontSize: '0.8rem' }}>{player.minutes_played}&apos;</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className={styles.emptyTeams}>
+                  <span className={styles.emptyIcon}>🏆</span>
+                  <p>Golden Boot standings will be updated live as the tournament starts!</p>
+                </div>
+              )}
+            </div>
+
 
             <p className={styles.description}>
               Predict match winners, earn points<br />and compete with football fans across the globe!

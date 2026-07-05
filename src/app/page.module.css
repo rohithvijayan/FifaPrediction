@@ -704,3 +704,42 @@
   line-height: 1.5;
   margin: 0;
 }
+
+.bootTableContainer {
+  width: 100%;
+  overflow-x: auto;
+  background: rgba(255, 255, 255, 0.01);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bootTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+.bootTable th {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #9ca3af;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.bootTable td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  font-size: 0.875rem;
+}
+
+.bootTable tr:last-child td {
+  border-bottom: none;
+}
+
+.bootTable tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
