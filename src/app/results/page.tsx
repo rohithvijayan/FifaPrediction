@@ -87,10 +87,32 @@ interface GoldenBootRow {
   updated_at: string;
 }
 
+interface KnockoutMatch {
+  id: number;
+  match_number: string;
+  stage: string;
+  match_date: string;
+  match_time: string;
+  fixture: string;
+  home_team: string;
+  home_team_code: string;
+  away_team: string;
+  away_team_code: string;
+  home_score: number | null;
+  away_score: number | null;
+  home_penalty_score: number | null;
+  away_penalty_score: number | null;
+  status: string;
+  venue: string;
+  result_text: string | null;
+  updated_at: string;
+}
+
 export default function ResultsPage() {
   const [standings, setStandings] = useState<StandingRow[]>([]);
   const [goldenBoot, setGoldenBoot] = useState<GoldenBootRow[]>([]);
-  const [activeView, setActiveView] = useState<'standings' | 'golden_boot'>('standings');
+  const [knockoutMatches, setKnockoutMatches] = useState<KnockoutMatch[]>([]);
+  const [activeView, setActiveView] = useState<'standings' | 'golden_boot' | 'knockout'>('standings');
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeGroupTab, setActiveGroupTab] = useState<string>('ALL');
@@ -123,8 +145,18 @@ export default function ResultsPage() {
         if (!bootErr && bootData) {
           setGoldenBoot(bootData);
         }
+
+        // Fetch knockout stage results
+        const { data: knockoutData, error: knockoutErr } = await supabase
+          .from('knockout_stage_results')
+          .select('*')
+          .order('id', { ascending: true });
+
+        if (!knockoutErr && knockoutData) {
+          setKnockoutMatches(knockoutData);
+        }
       } catch (err) {
-        console.error('Error fetching standings and golden boot:', err);
+        console.error('Error fetching standings, golden boot, and knockout:', err);
       } finally {
         setLoading(false);
       }
@@ -212,17 +244,57 @@ export default function ResultsPage() {
     });
   }, [standings]);
 
+  // Group and sort knockout matches by stage
+  const groupedKnockout = useMemo(() => {
+    const groups: Record<string, KnockoutMatch[]> = {
+      'Round of 32': [],
+      'Round of 16': [],
+      'Quarter-finals': [],
+      'Semi-finals': [],
+      'Third-Place Play-Off': [],
+      'Final': []
+    };
+
+    knockoutMatches.forEach((match) => {
+      let stageKey = match.stage;
+      if (stageKey.toLowerCase().includes('round of 32')) stageKey = 'Round of 32';
+      else if (stageKey.toLowerCase().includes('round of 16')) stageKey = 'Round of 16';
+      else if (stageKey.toLowerCase().includes('quarter')) stageKey = 'Quarter-finals';
+      else if (stageKey.toLowerCase().includes('semi')) stageKey = 'Semi-finals';
+      else if (stageKey.toLowerCase().includes('third')) stageKey = 'Third-Place Play-Off';
+      else if (stageKey.toLowerCase().includes('final')) stageKey = 'Final';
+
+      if (groups[stageKey]) {
+        groups[stageKey].push(match);
+      } else {
+        if (!groups[stageKey]) groups[stageKey] = [];
+        groups[stageKey].push(match);
+      }
+    });
+
+    // Sort matches within each stage by match_number
+    Object.keys(groups).forEach((stage) => {
+      groups[stage].sort((a, b) => {
+        const numA = parseInt(a.match_number) || 0;
+        const numB = parseInt(b.match_number) || 0;
+        return numA - numB;
+      });
+    });
+
+    return groups;
+  }, [knockoutMatches]);
+
   return (
     <div className={styles.wrapper}>
       <Navbar />
 
       <div className={styles.heroSection}>
-        <Image 
-          src="/images/rulesBG1.jpg" 
-          alt="Group Standings Hero" 
-          fill 
-          className={styles.heroImage} 
-          priority 
+        <Image
+          src="/images/rulesBG1.jpg"
+          alt="Group Standings Hero"
+          fill
+          className={styles.heroImage}
+          priority
         />
         <div className={styles.heroOverlay}></div>
         <div className={styles.heroContent}>
@@ -242,6 +314,15 @@ export default function ResultsPage() {
             className={`${styles.viewBtn} ${activeView === 'standings' ? styles.activeViewBtn : ''}`}
           >
             ⚽ Group Standings
+          </button>
+          <button
+            onClick={() => {
+              setActiveView('knockout');
+              setSearchQuery('');
+            }}
+            className={`${styles.viewBtn} ${activeView === 'knockout' ? styles.activeViewBtn : ''}`}
+          >
+            🌳 Knockout Stage
           </button>
           <button
             onClick={() => {
@@ -324,8 +405,8 @@ export default function ResultsPage() {
                               );
 
                               return (
-                                <tr 
-                                  key={team.id} 
+                                <tr
+                                  key={team.id}
                                   className={`${styles.tableRow} ${posClass} ${isHighlighted ? styles.highlightRow : ''}`}
                                 >
                                   <td className={styles.posCol}>{position}</td>
@@ -363,7 +444,7 @@ export default function ResultsPage() {
               </div>
             )}
           </>
-        ) : (
+        ) : activeView === 'golden_boot' ? (
           /* Render Golden Boot standings */
           <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
             {loading ? (
@@ -419,6 +500,111 @@ export default function ResultsPage() {
                 <p className="anek-malayalam">ഗോൾഡൻ ബൂട്ട് വിവരങ്ങൾ ലഭ്യമല്ല.</p>
                 <p style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.5rem' }}>
                   Golden Boot standings will be updated live as goals are scored!
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Render Knockout Stage results */
+          <div style={{ width: '100%' }}>
+            {loading ? (
+              <div className={styles.loadingContainer}>
+                <div className={styles.spinner}></div>
+                <p className="anek-malayalam">വിവരങ്ങൾ ശേഖരിക്കുന്നു...</p>
+              </div>
+            ) : knockoutMatches.length > 0 ? (
+              <div className={styles.knockoutGrid}>
+                {Object.entries(groupedKnockout).map(([stageName, matches]) => {
+                  if (matches.length === 0) return null;
+                  return (
+                    <div key={stageName} className={styles.stageSection}>
+                      <div className={styles.stageHeader}>
+                        <h2 className={`${styles.stageTitleText} anek-malayalam`}>
+                          {stageName === 'Round of 32' ? 'റൗണ്ട് ഓഫ് 32' : 
+                           stageName === 'Round of 16' ? 'റൗണ്ട് ഓഫ് 16' : 
+                           stageName === 'Quarter-finals' ? 'ക്വാർട്ടർ ഫൈനൽ' : 
+                           stageName === 'Semi-finals' ? 'സെമി ഫൈനൽ' : 
+                           stageName === 'Third-Place Play-Off' ? 'ലൂസേഴ്സ് ഫൈനൽ' : 
+                           'ഫൈനൽ'}
+                        </h2>
+                        <span className={styles.groupBadge}>{stageName}</span>
+                      </div>
+
+                      <div className={styles.matchCardsGrid}>
+                        {matches.map((match) => (
+                          <div key={match.id} className={styles.matchCard}>
+                            <div className={styles.matchCardHeader}>
+                              <span className={styles.matchNumberBadge}>Match #{match.match_number}</span>
+                              <span>{match.match_date} • {match.match_time}</span>
+                              <span className={`${styles.matchStatusBadge} ${match.status === 'FT' ? styles.statusFT : styles.statusUpcoming}`}>
+                                {match.status}
+                              </span>
+                            </div>
+
+                            <div className={styles.matchBody}>
+                              {/* Home Team */}
+                              <div className={styles.matchTeam}>
+                                {match.home_team_code && match.home_team_code !== 'TBD' ? (
+                                  <div className={styles.matchTeamFlag}>
+                                    {renderFlag(match.home_team_code)}
+                                  </div>
+                                ) : (
+                                  <span className={styles.matchTeamFlagEmoji}>🏳️</span>
+                                )}
+                                <span className={styles.matchTeamName} title={match.home_team}>{match.home_team}</span>
+                                <span className={styles.matchTeamCode}>{match.home_team_code}</span>
+                              </div>
+
+                              {/* Score Area */}
+                              <div className={styles.matchScoreArea}>
+                                <div className={styles.matchScoreDisplay}>
+                                  <span>{match.home_score !== null ? match.home_score : '-'}</span>
+                                  <span className={styles.matchScoreSeparator}>:</span>
+                                  <span>{match.away_score !== null ? match.away_score : '-'}</span>
+                                </div>
+                                {(match.home_penalty_score !== null || match.away_penalty_score !== null) && (
+                                  <div className={styles.penaltyDisplay}>
+                                    ({match.home_penalty_score} - {match.away_penalty_score} Pens)
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Away Team */}
+                              <div className={styles.matchTeam}>
+                                {match.away_team_code && match.away_team_code !== 'TBD' ? (
+                                  <div className={styles.matchTeamFlag}>
+                                    {renderFlag(match.away_team_code)}
+                                  </div>
+                                ) : (
+                                  <span className={styles.matchTeamFlagEmoji}>🏳️</span>
+                                )}
+                                <span className={styles.matchTeamName} title={match.away_team}>{match.away_team}</span>
+                                <span className={styles.matchTeamCode}>{match.away_team_code}</span>
+                              </div>
+                            </div>
+
+                            <div className={styles.matchCardFooter}>
+                              <div className={styles.matchVenue}>
+                                📍 {match.venue || 'TBD Venue'}
+                              </div>
+                              {match.result_text && (
+                                <div className={styles.matchResultText}>
+                                  {match.result_text}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className={styles.noResults}>
+                <p className="anek-malayalam font-bold text-lg">നോക്കൗട്ട് വിവരങ്ങൾ ലഭ്യമല്ല.</p>
+                <p style={{ fontSize: '0.9rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                  Knockout Stage results will be updated live as they finish!
                 </p>
               </div>
             )}

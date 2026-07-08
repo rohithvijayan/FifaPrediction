@@ -1,4 +1,4 @@
-// ⚽ Type definitions for പന്തഭ്രനിയ (Goal Guru)
+// ⚽ Type definitions for panthduniya
 
 // ============================================================
 // Database row types
