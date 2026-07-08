@@ -11,11 +11,11 @@ export async function GET(request: Request) {
     // 1. Verify cron secret key to secure the endpoint
     const { searchParams } = new URL(request.url);
     const querySecret = searchParams.get('secret');
-    
+
     // Check Authorization header (Bearer token)
     const authHeader = request.headers.get('authorization');
     const headerSecret = authHeader ? authHeader.replace(/^Bearer\s+/i, '') : null;
-    
+
     const secret = querySecret || headerSecret;
     const expectedSecret = process.env.CRON_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -35,12 +35,12 @@ export async function GET(request: Request) {
     }
 
     const allFixtures = fixturesData.fixtures || [];
-    const knockoutFixtures = allFixtures.filter((f: any) => 
+    const knockoutFixtures = allFixtures.filter((f: any) =>
       f.stage && f.stage !== 'Group Stage'
     );
 
     // 3. Initialize Groq SDK
-    const groqApiKey = process.env.GROQ_API_KEY || '***REMOVED***';
+    const groqApiKey = process.env.GROQ_API_KEY;
     const groq = new Groq({ apiKey: groqApiKey });
 
     const systemPrompt = `You are a sports data assistant for the FIFA World Cup 2026 prediction platform.
