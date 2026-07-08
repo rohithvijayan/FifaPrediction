@@ -1,7 +1,4 @@
-import { NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
-
-export const dynamic = 'force-dynamic';
+const { createClient } = require('@supabase/supabase-js');
 
 const OFFICIAL_RESULTS = [
   // Round of 32
@@ -593,58 +590,25 @@ const OFFICIAL_RESULTS = [
   }
 ];
 
-export async function GET(request: Request) {
-  try {
-    // 1. Verify cron secret key to secure the endpoint
-    const { searchParams } = new URL(request.url);
-    const querySecret = searchParams.get('secret');
+async function test() {
+  const supabaseUrl = 'https://pcutnrrnsnqeulycktdo.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjdXRucnJuc25xZXVseWNrdGRvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDIzNjE2MCwiZXhwIjoyMDk1ODEyMTYwfQ.mrntUYL0UVxypuJjIYE5_UqnhDgocA4IEmBUz8MBW8w';
+  const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check Authorization header (Bearer token)
-    const authHeader = request.headers.get('authorization');
-    const headerSecret = authHeader ? authHeader.replace(/^Bearer\s+/i, '') : null;
+  const mapped = OFFICIAL_RESULTS.map(item => ({
+    ...item,
+    updated_at: new Date().toISOString()
+  }));
 
-    const secret = querySecret || headerSecret;
-    const expectedSecret = process.env.CRON_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const { data, error } = await supabase
+    .from('knockout_stage_results')
+    .upsert(mapped, { onConflict: 'match_number' });
 
-    if (expectedSecret && secret !== expectedSecret) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // 2. Connect to Supabase
-    const supabaseAdmin = createAdminClient();
-
-    // 3. Map with updatedAt timestamp
-    const mappedResults = OFFICIAL_RESULTS.map((item) => ({
-      ...item,
-      updated_at: new Date().toISOString()
-    }));
-
-    // 4. Upsert official results into database
-    const { error: dbError } = await supabaseAdmin
-      .from('knockout_stage_results')
-      .upsert(mappedResults, { onConflict: 'match_number' });
-
-    if (dbError) {
-      console.warn('Could not save knockout results to DB:', dbError.message);
-      return NextResponse.json({
-        success: false,
-        error: dbError.message,
-        data: mappedResults
-      }, { status: 500 });
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: `Successfully synchronized all 32 official FIFA World Cup 2026 knockout stage match results and pairings in DB.`,
-      data: mappedResults
-    });
-
-  } catch (err) {
-    const error = err as Error;
-    console.error('Update Knockout error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Internal Server Error' },
-      { status: 500 }
-    );
+  if (error) {
+    console.error("DB Upsert Error:", error);
+  } else {
+    console.log("Successfully upserted 32 official match records to Supabase using the Service Role Key!");
   }
 }
+
+test();

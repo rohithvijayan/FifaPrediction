@@ -56,6 +56,22 @@ const TEAM_COUNTRY_CODES: Record<string, string> = {
   'BOL': 'bo', // Bolivia
   'ITA': 'it', // Italy
   'SVN': 'si', // Slovenia
+  'RSA': 'za', // South Africa
+  'CIV': 'ci', // Ivory Coast
+  'SWE': 'se', // Sweden
+  'COD': 'cd', // DR Congo
+  'AUT': 'at', // Austria
+  'ALG': 'dz', // Algeria
+  'CPV': 'cv', // Cape Verde
+  'GHA': 'gh', // Ghana
+  'NOR': 'no', // Norway
+  'SUI': 'ch', // Switzerland
+  'CZE': 'cz', // Czechia
+  'NZL': 'nz', // New Zealand
+  'IRQ': 'iq', // Iraq
+  'JOR': 'jo', // Jordan
+  'QAT': 'qa', // Qatar
+  'CUW': 'cw', // Curaçao
 };
 
 interface StandingRow {
