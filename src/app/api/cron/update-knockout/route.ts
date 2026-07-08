@@ -6,6 +6,36 @@ import { Groq } from 'groq-sdk';
 
 export const dynamic = 'force-dynamic';
 
+interface Fixture {
+  matchNumber: number | string;
+  stage?: string;
+  date: string;
+  time: string;
+  fixture: string;
+  venue?: string;
+  status?: string;
+  result?: string | null;
+}
+
+interface SimulatedMatch {
+  match_number: string;
+  stage: string;
+  match_date: string;
+  match_time: string;
+  fixture: string;
+  home_team: string;
+  home_team_code: string;
+  away_team: string;
+  away_team_code: string;
+  home_score: number | null;
+  away_score: number | null;
+  home_penalty_score: number | null;
+  away_penalty_score: number | null;
+  status: string;
+  venue: string;
+  result_text: string | null;
+}
+
 export async function GET(request: Request) {
   try {
     // 1. Verify cron secret key to secure the endpoint
@@ -25,7 +55,7 @@ export async function GET(request: Request) {
 
     // 2. Read fixtures.json to get the base tournament structure
     const fixturesPath = path.join(process.cwd(), 'fixtures.json');
-    let fixturesData;
+    let fixturesData: { fixtures?: Fixture[] };
     try {
       const rawData = fs.readFileSync(fixturesPath, 'utf8');
       fixturesData = JSON.parse(rawData);
@@ -35,7 +65,7 @@ export async function GET(request: Request) {
     }
 
     const allFixtures = fixturesData.fixtures || [];
-    const knockoutFixtures = allFixtures.filter((f: any) =>
+    const knockoutFixtures = allFixtures.filter((f) => 
       f.stage && f.stage !== 'Group Stage'
     );
 
@@ -126,7 +156,7 @@ Please generate the complete simulated knockout stage results as specified. You 
     });
 
     const responseContent = completion.choices[0].message?.content || '{}';
-    const parsedData = JSON.parse(responseContent);
+    const parsedData = JSON.parse(responseContent) as { results?: SimulatedMatch[] };
     const simulatedResults = parsedData.results || [];
 
     if (simulatedResults.length === 0) {
@@ -137,7 +167,7 @@ Please generate the complete simulated knockout stage results as specified. You 
     const supabaseAdmin = createAdminClient();
 
     // 5. Upsert results into database
-    const mappedResults = simulatedResults.map((item: any) => ({
+    const mappedResults = simulatedResults.map((item) => ({
       match_number: String(item.match_number),
       stage: item.stage,
       match_date: item.match_date,
@@ -176,10 +206,11 @@ Please generate the complete simulated knockout stage results as specified. You 
       data: mappedResults
     });
 
-  } catch (err: any) {
-    console.error('Update Knockout error:', err);
+  } catch (err) {
+    const error = err as Error;
+    console.error('Update Knockout error:', error);
     return NextResponse.json(
-      { error: err.message || 'Internal Server Error' },
+      { error: error.message || 'Internal Server Error' },
       { status: 500 }
     );
   }
