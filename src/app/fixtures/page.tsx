@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Navbar from '../components/Navbar';
+import { supabase } from '@/lib/supabase/client';
 import styles from './fixtures.module.css';
 import fixturesData from '../../../fixtures.json';
 
@@ -15,6 +16,10 @@ interface FixtureItem {
   venue?: string;
   status?: string;
   result?: string | null;
+  homeScore?: number | null;
+  awayScore?: number | null;
+  homePenalty?: number | null;
+  awayPenalty?: number | null;
 }
 
 // ── Country codes map for all 48 WC 2026 teams ──────────────────────────────────
@@ -85,6 +90,25 @@ const parseScores = (result: string | null | undefined, team1: string, team2: st
 export default function FixturesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'group' | 'round32_16' | 'quarter_semi' | 'finals'>('all');
+  const [knockoutMatches, setKnockoutMatches] = useState<any[]>([]);
+
+  // Fetch live knockout matches from database
+  useEffect(() => {
+    async function fetchKnockout() {
+      try {
+        const { data, error } = await supabase
+          .from('knockout_stage_results')
+          .select('*')
+          .order('match_number', { ascending: true });
+        if (data) {
+          setKnockoutMatches(data);
+        }
+      } catch (err) {
+        console.error('Error fetching knockout matches:', err);
+      }
+    }
+    fetchKnockout();
+  }, []);
 
   const renderFlag = (team: string) => {
     const code = TEAM_COUNTRY_CODES[team.trim()];
@@ -104,7 +128,40 @@ export default function FixturesPage() {
 
   // Filter and group fixtures
   const groupedFixtures = useMemo(() => {
-    const filtered = (fixturesData.fixtures as FixtureItem[]).filter(match => {
+    // 1. Group stage matches (matches 1 to 72) from fixturesData.fixtures JSON
+    const groupMatches = (fixturesData.fixtures as FixtureItem[]).filter(match => {
+      const matchNum = Number(match.matchNumber);
+      return !isNaN(matchNum) && matchNum <= 72;
+    });
+
+    // 2. Knockout stage matches from the database (or fallback if empty)
+    let knockoutList: FixtureItem[] = [];
+    if (knockoutMatches.length > 0) {
+      knockoutList = knockoutMatches.map(m => ({
+        matchNumber: Number(m.match_number),
+        stage: m.stage,
+        date: m.match_date,
+        time: m.match_time,
+        fixture: m.fixture,
+        venue: m.venue,
+        status: m.status === 'FT' ? 'Final' : m.status,
+        result: m.result_text,
+        homeScore: m.home_score,
+        awayScore: m.away_score,
+        homePenalty: m.home_penalty_score,
+        awayPenalty: m.away_penalty_score
+      }));
+    } else {
+      // Fallback to local fixtures json knockout matches if db call hasn't finished
+      knockoutList = (fixturesData.fixtures as FixtureItem[]).filter(match => {
+        const matchNum = Number(match.matchNumber);
+        return isNaN(matchNum) || matchNum > 72;
+      });
+    }
+
+    const allMatches = [...groupMatches, ...knockoutList];
+
+    const filtered = allMatches.filter(match => {
       // Search filter
       const matchesSearch = match.fixture.toLowerCase().includes(searchQuery.toLowerCase());
       if (!matchesSearch) return false;
@@ -135,7 +192,7 @@ export default function FixturesPage() {
     });
 
     return groups;
-  }, [searchQuery, activeTab]);
+  }, [knockoutMatches, searchQuery, activeTab]);
 
   // Format date function
   const formatDate = (dateStr: string) => {
@@ -218,9 +275,25 @@ export default function FixturesPage() {
                   const hasTeams = teams.length === 2;
 
                   const isFinal = match.status === 'Final';
-                  const { score1, score2 } = isFinal && match.result
-                    ? parseScores(match.result, teams[0], teams[1])
-                    : { score1: null, score2: null };
+                  
+                  let score1: string | number | null = null;
+                  let score2: string | number | null = null;
+
+                  if (isFinal) {
+                    if (match.homeScore !== undefined && match.homeScore !== null) {
+                      if (match.homePenalty !== undefined && match.homePenalty !== null) {
+                        score1 = `${match.homeScore} (${match.homePenalty})`;
+                        score2 = `${match.awayScore} (${match.awayPenalty})`;
+                      } else {
+                        score1 = match.homeScore;
+                        score2 = match.awayScore;
+                      }
+                    } else if (match.result) {
+                      const parsed = parseScores(match.result, teams[0], teams[1]);
+                      score1 = parsed.score1;
+                      score2 = parsed.score2;
+                    }
+                  }
 
                   return (
                     <div key={index} className={styles.matchRow}>
