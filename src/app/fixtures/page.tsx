@@ -87,10 +87,31 @@ const parseScores = (result: string | null | undefined, team1: string, team2: st
   return { score1: null, score2: null };
 };
 
+interface KnockoutMatchItem {
+  id: number;
+  match_number: string;
+  stage: string;
+  match_date: string;
+  match_time: string;
+  fixture: string;
+  home_team: string;
+  home_team_code: string;
+  away_team: string;
+  away_team_code: string;
+  home_score: number | null;
+  away_score: number | null;
+  home_penalty_score: number | null;
+  away_penalty_score: number | null;
+  status: string;
+  venue: string;
+  result_text: string | null;
+  updated_at: string;
+}
+
 export default function FixturesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'group' | 'round32_16' | 'quarter_semi' | 'finals'>('all');
-  const [knockoutMatches, setKnockoutMatches] = useState<any[]>([]);
+  const [knockoutMatches, setKnockoutMatches] = useState<KnockoutMatchItem[]>([]);
 
   // Fetch live knockout matches from database
   useEffect(() => {
@@ -100,8 +121,11 @@ export default function FixturesPage() {
           .from('knockout_stage_results')
           .select('*')
           .order('match_number', { ascending: true });
+        if (error) {
+          console.warn('Error fetching knockout stage results:', error.message);
+        }
         if (data) {
-          setKnockoutMatches(data);
+          setKnockoutMatches(data as KnockoutMatchItem[]);
         }
       } catch (err) {
         console.error('Error fetching knockout matches:', err);
@@ -283,10 +307,10 @@ export default function FixturesPage() {
                     if (match.homeScore !== undefined && match.homeScore !== null) {
                       if (match.homePenalty !== undefined && match.homePenalty !== null) {
                         score1 = `${match.homeScore} (${match.homePenalty})`;
-                        score2 = `${match.awayScore} (${match.awayPenalty})`;
+                        score2 = `${match.awayScore ?? ''} (${match.awayPenalty ?? ''})`;
                       } else {
-                        score1 = match.homeScore;
-                        score2 = match.awayScore;
+                        score1 = match.homeScore ?? null;
+                        score2 = match.awayScore ?? null;
                       }
                     } else if (match.result) {
                       const parsed = parseScores(match.result, teams[0], teams[1]);
