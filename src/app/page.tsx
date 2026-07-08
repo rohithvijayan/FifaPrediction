@@ -36,7 +36,7 @@ interface GoldenBootPlayer {
 
 export default async function LandingPage() {
   const supabase = createClient();
-  
+
   // Fetch popular teams
   const { data: topTeams } = await supabase
     .from('team_registration_counts')
@@ -175,7 +175,7 @@ export default async function LandingPage() {
             <div className={styles.topTeamsSection}>
               <div className={styles.topTeamsHeader}>
                 <span className={styles.hotBadge} style={{ background: 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)' }}>🏆 GOLDEN BOOT</span>
-                <h3>adidas Golden Boot</h3>
+                <h3> Golden Boot</h3>
                 <p>Top goalscorers of the FIFA World Cup 2026</p>
               </div>
 
