@@ -95,6 +95,8 @@ const ScoreboardIcon = () => (
   </svg>
 );
 
+const REGISTRATIONS_CLOSED = true;
+
 export default function PredictPage() {
   const { user, signUp, signIn } = useAuth();
 
@@ -310,7 +312,7 @@ export default function PredictPage() {
   // Helper to check if a question is locked
   const hasSubmittedAny = Object.keys(predictions).length > 0;
   const isQuestionLocked = (q: Question) => {
-    return hasSubmittedAny || new Date(q.lock_date) <= new Date() || q.is_settled;
+    return REGISTRATIONS_CLOSED || hasSubmittedAny || new Date(q.lock_date) <= new Date() || q.is_settled;
   };
 
   const handleInputChange = (qId: number, field: string, value: string) => {
@@ -412,6 +414,10 @@ export default function PredictPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (REGISTRATIONS_CLOSED) {
+      setAlert({ type: 'error', message: 'Registrations and submissions are closed.' });
+      return;
+    }
     setAlert(null);
     setAuthError('');
 
@@ -589,6 +595,18 @@ export default function PredictPage() {
       </div>
 
       <div className={styles.container}>
+      {REGISTRATIONS_CLOSED && (
+        <div className={styles.disclaimerBanner}>
+          <div className={styles.disclaimerIcon}>⚠️</div>
+          <div className={styles.disclaimerContent}>
+            <h3 className={styles.disclaimerTitle}>Registrations &amp; Predictions Closed</h3>
+            <p className={styles.disclaimerText}>
+              Registrations for the FIFA World Cup 2026™ Predict &amp; Win challenge are now closed. All prediction fields have been locked and new submissions are no longer accepted.
+            </p>
+          </div>
+        </div>
+      )}
+
       {alert && (
         <div className={`${styles.alert} ${alert.type === 'success' ? styles.alertSuccess : styles.alertError}`}>
           {alert.type === 'success' ? '✅' : '⚠️'} {alert.message}
@@ -773,7 +791,7 @@ export default function PredictPage() {
         </div>
 
         {/* If guest, display registration or login form */}
-        {!user && (
+        {!user && !REGISTRATIONS_CLOSED && (
           <div className={styles.authCard}>
             <h2 className={styles.authCardTitle}>
               {isLoginMode ? 'Sign In to Save' : 'Submit Details to Lock In Predictions'}
@@ -1011,8 +1029,17 @@ export default function PredictPage() {
           </div>
         )}
 
+        {!user && REGISTRATIONS_CLOSED && (
+          <div className={styles.authCard} style={{ textAlign: 'center', borderColor: 'rgba(239, 68, 68, 0.25)', background: 'linear-gradient(145deg, rgba(239, 68, 68, 0.12), rgba(239, 68, 68, 0.04))' }}>
+            <h2 className={styles.authCardTitle} style={{ color: 'var(--accent-red)' }}>Registrations Closed</h2>
+            <p className={styles.authCardSubtitle} style={{ marginBottom: 0 }}>
+              New user registrations are no longer accepted. All prediction fields are locked.
+            </p>
+          </div>
+        )}
+
         {/* Form Action Buttons for Authenticated Users */}
-        {user && !hasSubmittedAny && (
+        {user && !hasSubmittedAny && !REGISTRATIONS_CLOSED && (
           <div className={styles.footerActions}>
             <button
               type="submit"
@@ -1023,10 +1050,17 @@ export default function PredictPage() {
             </button>
           </div>
         )}
-        {user && hasSubmittedAny && (
+        {user && hasSubmittedAny && !REGISTRATIONS_CLOSED && (
           <div className={styles.footerActions}>
             <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(52, 211, 153, 0.1)', color: '#34d399', borderRadius: '8px', border: '1px solid rgba(52, 211, 153, 0.2)', width: '100%' }}>
               ✅ Your predictions have been locked in. Good luck!
+            </div>
+          </div>
+        )}
+        {user && REGISTRATIONS_CLOSED && (
+          <div className={styles.footerActions}>
+            <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--accent-red)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)', width: '100%', fontWeight: '600' }}>
+              🔒 Submissions are closed. All prediction fields are locked.
             </div>
           </div>
         )}
